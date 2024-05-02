@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <item name="proceedButton2" type="id" />
+    <item name="capturePhotoButton" type="id" />
+    <item name="topicContainer" type="id" />
+    <item name="addTopicButton" type="id" />
+    <item name="numPagesEditText" type="id" />
+    <item name="numQuestionsEditText" type="id" />
+    <item name="questionsEditText" type="id" />
+    <item name="addAnotherTopicButton" type="id" />
+    <item name="topicEditText" type="id" />
+</resources>
