@@ -23,13 +23,24 @@
         android:layout_marginTop="16dp"
         android:layout_centerHorizontal="true" />
 
+    <!-- Button to count marks -->
+    <Button
+        android:id="@+id/countMarksButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Count Marks"
+        android:layout_below="@id/captureImageButton"
+        android:layout_marginTop="16dp"
+        android:layout_centerHorizontal="true" />
+
     <!-- ImageView to display the captured image -->
     <ImageView
         android:id="@+id/imageView"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_below="@id/captureImageButton"
+        android:layout_below="@id/countMarksButton"
         android:layout_marginTop="16dp"
-        android:scaleType="fitCenter" />
+        android:scaleType="fitCenter"
+        android:visibility="gone" />
 
 </RelativeLayout>
