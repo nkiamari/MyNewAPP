@@ -12,6 +12,7 @@ import android.widget.Toast;
 
 import org.opencv.android.OpenCVLoader;
 import org.opencv.android.Utils;
+import org.opencv.core.Core;
 import org.opencv.core.Mat;
 import org.opencv.core.MatOfPoint;
 import org.opencv.core.Point;
@@ -21,6 +22,12 @@ import org.opencv.imgproc.Imgproc;
 
 import java.util.ArrayList;
 import java.util.List;
+import android.util.Log;
+
+import android.content.ClipData;
+import android.net.Uri;
+import java.io.IOException;
+
 
 public class SelectTemplateActivity extends Activity {
 
@@ -71,9 +78,17 @@ public class SelectTemplateActivity extends Activity {
         countMarksButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                countMarksAndProcessImage();
+                if (capturedImage != null && !selectedTemplates.isEmpty()) {
+                    // Assuming you want to count contours for the first selected template
+                    Bitmap templateBitmap = selectedTemplates.get(0);
+                    int contours = countMarkssingletemplate(capturedImage, templateBitmap);
+                    Toast.makeText(SelectTemplateActivity.this, "Number of contours: " + contours, Toast.LENGTH_SHORT).show();
+                } else {
+                    Toast.makeText(SelectTemplateActivity.this, "Please capture an image and select templates first", Toast.LENGTH_SHORT).show();
+                }
             }
         });
+
     }
 
     private void dispatchTakePictureIntent() {
@@ -85,10 +100,44 @@ public class SelectTemplateActivity extends Activity {
         }
     }
 
+    // Helper method to convert Uri to Bitmap
+    private Bitmap getBitmapFromUri(Uri uri) {
+        try {
+            return MediaStore.Images.Media.getBitmap(this.getContentResolver(), uri);
+        } catch (IOException e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        if (requestCode == REQUEST_IMAGE_CAPTURE && resultCode == RESULT_OK && data != null) {
+
+        if (requestCode == REQUEST_SELECT_TEMPLATES && resultCode == RESULT_OK && data != null) {
+            if (data.getData() != null) {
+                // Handle single image selection
+                Bitmap selectedTemplateBitmap = getBitmapFromUri(data.getData());
+                if (selectedTemplateBitmap != null) {
+                    selectedTemplates.add(selectedTemplateBitmap);
+                } else {
+                    Toast.makeText(this, "Failed to load template image", Toast.LENGTH_SHORT).show();
+                }
+            } else if (data.getClipData() != null) {
+                // Handle multiple image selection
+                ClipData clipData = data.getClipData();
+                for (int i = 0; i < clipData.getItemCount(); i++) {
+                    Uri uri = clipData.getItemAt(i).getUri();
+                    Bitmap selectedTemplateBitmap = getBitmapFromUri(uri);
+                    if (selectedTemplateBitmap != null) {
+                        selectedTemplates.add(selectedTemplateBitmap);
+                    } else {
+                        Toast.makeText(this, "Failed to load template image", Toast.LENGTH_SHORT).show();
+                    }
+                }
+            }
+            Toast.makeText(this, "Template(s) selected", Toast.LENGTH_SHORT).show();
+        } else if (requestCode == REQUEST_IMAGE_CAPTURE && resultCode == RESULT_OK && data != null) {
             Bundle extras = data.getExtras();
             if (extras != null && extras.containsKey("data")) {
                 capturedImage = (Bitmap) extras.get("data");
@@ -103,48 +152,86 @@ public class SelectTemplateActivity extends Activity {
     }
 
 
-    private void countMarksAndProcessImage() {
-        if (capturedImage != null) {
-            // Convert captured image to Mat
-            Mat imageMat = new Mat();
-            Utils.bitmapToMat(capturedImage, imageMat);
 
-            // Convert the captured image bitmap from ARGB to BGR format
-            Imgproc.cvtColor(imageMat, imageMat, Imgproc.COLOR_RGBA2BGR);
-
-            // Convert the image to grayscale
-            Mat grayMat = new Mat();
-            Imgproc.cvtColor(imageMat, grayMat, Imgproc.COLOR_BGR2GRAY);
-
-            // Threshold the grayscale image to get binary image
-            Mat binaryMat = new Mat();
-            Imgproc.threshold(grayMat, binaryMat, 0, 255, Imgproc.THRESH_BINARY);
-
-            // Find contours
-            List<MatOfPoint> contours = new ArrayList<>();
-            Mat hierarchy = new Mat();
-            Imgproc.findContours(binaryMat, contours, hierarchy, Imgproc.RETR_EXTERNAL, Imgproc.CHAIN_APPROX_SIMPLE);
-
-            // Display the number of contours found
-            Toast.makeText(this, "Number of contours: " + contours.size(), Toast.LENGTH_SHORT).show();
-
-            // Convert red parts of the image to white
-            Scalar colorWhite = new Scalar(255, 255, 255); // BGR color format
-            for (MatOfPoint contour : contours) {
-                Rect rect = Imgproc.boundingRect(contour);
-                Imgproc.rectangle(imageMat, new Point(rect.x, rect.y), new Point(rect.x + rect.width, rect.y + rect.height), colorWhite, -1);
-            }
-
-            // Convert the processed Mat back to Bitmap for display
-            Bitmap processedBitmap = Bitmap.createBitmap(imageMat.cols(), imageMat.rows(), Bitmap.Config.ARGB_8888);
-            Utils.matToBitmap(imageMat, processedBitmap);
-
-            // Display the processed image in the ImageView
-            imageView.setImageBitmap(processedBitmap);
-            imageView.setVisibility(View.VISIBLE); // Show the ImageView
-        } else {
-            Toast.makeText(this, "Please capture an image first", Toast.LENGTH_SHORT).show();
+    public int countMarkssingletemplate(Bitmap photoBitmap, Bitmap templateBitmap) {
+        // Check if input bitmaps are valid
+        if (photoBitmap == null || templateBitmap == null) {
+            Log.e("countMarkssingletemplate", "Null bitmap detected");
+            return 0;
         }
+
+        // Convert Bitmaps to Mats
+        Mat imageMat = new Mat();
+        Mat templateMat = new Mat();
+        Utils.bitmapToMat(photoBitmap, imageMat);
+        Utils.bitmapToMat(templateBitmap, templateMat);
+
+        // Convert the input image bitmap from ARGB to BGR format
+        Imgproc.cvtColor(imageMat, imageMat, Imgproc.COLOR_RGBA2BGR);
+        // Convert the input template bitmap from ARGB to BGR format
+        Imgproc.cvtColor(templateMat, templateMat, Imgproc.COLOR_RGBA2BGR);
+
+        // Perform template matching
+        Mat result = new Mat();
+        Imgproc.matchTemplate(imageMat, templateMat, result, Imgproc.TM_CCOEFF_NORMED);
+
+        // Define threshold for template matching
+        double threshold = 0.8;
+        Core.compare(result, new Scalar(threshold), result, Core.CMP_GT);
+
+        // Find maximum value in the result matrix
+        Core.MinMaxLocResult mmr = Core.minMaxLoc(result);
+        Point maxLoc = mmr.maxLoc;
+
+        // Extract the bounding box of the template in the original image
+        org.opencv.core.Rect boundingBox = new org.opencv.core.Rect((int) maxLoc.x, (int) maxLoc.y, templateMat.cols(), templateMat.rows());
+
+        // Extract the region of interest (ROI) from the original image
+        // Adjust bounding box coordinates if necessary
+        int x = Math.max(boundingBox.x, 0);
+        int y = Math.max(boundingBox.y, 0);
+        int width = Math.min(boundingBox.width, imageMat.cols() - x);
+        int height = Math.min(boundingBox.height, imageMat.rows() - y);
+
+// Create ROI with adjusted bounding box
+        Rect adjustedBoundingBox = new Rect(x, y, width, height);
+        Mat roi = new Mat(imageMat, adjustedBoundingBox);
+
+
+        // Convert the ROI to the HSV color space
+        Mat hsvMat = new Mat();
+        Imgproc.cvtColor(roi, hsvMat, Imgproc.COLOR_BGR2HSV);
+
+        // Define the lower and upper bounds for the red color in HSV
+        Scalar lowerBound = new Scalar(0, 100, 100);
+        Scalar upperBound = new Scalar(10, 255, 255);
+
+        // Create a mask for red color in HSV
+        Mat mask = new Mat();
+        Core.inRange(hsvMat, lowerBound, upperBound, mask);
+
+        // Find contours
+        List<MatOfPoint> contours = new ArrayList<>();
+        Mat hierarchy = new Mat();
+        Imgproc.findContours(mask, contours, hierarchy, Imgproc.RETR_EXTERNAL, Imgproc.CHAIN_APPROX_SIMPLE);
+
+        // Apply the mask to the original image
+        Mat resultImage = new Mat();
+        imageMat.copyTo(resultImage, mask);
+
+        // Convert the result of template matching and the processed image to bitmaps for display
+        Bitmap resultBitmapTemplateMatch = Bitmap.createBitmap(result.cols(), result.rows(), Bitmap.Config.ARGB_8888);
+        Utils.matToBitmap(result, resultBitmapTemplateMatch);
+        Bitmap resultBitmapColorProcessing = Bitmap.createBitmap(resultImage.cols(), resultImage.rows(), Bitmap.Config.ARGB_8888);
+        Utils.matToBitmap(resultImage, resultBitmapColorProcessing);
+
+        // Display the resultBitmapTemplateMatch and resultBitmapColorProcessing in ImageViews or somewhere else
+
+        // Display the resultBitmapTemplateMatch
+        ImageView resultImageView = findViewById(R.id.resultImageView);
+        resultImageView.setImageBitmap(resultBitmapTemplateMatch);
+        return contours.size(); // Number of contours detected
     }
+
 
 }
