@@ -53,7 +53,7 @@
         android:layout_width="102dp"
         android:layout_height="200dp"
         android:layout_below="@id/countMarksButton"
-        android:layout_marginTop="-2dp"
+        android:layout_marginTop="-181dp"
         android:scaleType="fitCenter"
         android:visibility="visible" />
 

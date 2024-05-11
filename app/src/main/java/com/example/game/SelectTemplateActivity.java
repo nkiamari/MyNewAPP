@@ -45,6 +45,8 @@ public class SelectTemplateActivity extends Activity {
 
     private ImageView imageView;
 
+    private ImageView resultImageView;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -57,6 +59,7 @@ public class SelectTemplateActivity extends Activity {
         captureImageButton = findViewById(R.id.captureImageButton);
         countMarksButton = findViewById(R.id.countMarksButton);
         imageView = findViewById(R.id.imageView);
+        resultImageView = findViewById(R.id.resultImageView);
 
         selectTemplatesButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -81,8 +84,9 @@ public class SelectTemplateActivity extends Activity {
                 if (capturedImage != null && !selectedTemplates.isEmpty()) {
                     // Assuming you want to count contours for the first selected template
                     Bitmap templateBitmap = selectedTemplates.get(0);
-                    int contours = countMarkssingletemplate(capturedImage, templateBitmap);
-                    Toast.makeText(SelectTemplateActivity.this, "Number of contours: " + contours, Toast.LENGTH_SHORT).show();
+                    //int contours = countMarkssingletemplate(capturedImage, templateBitmap);
+                    countMarkssingletemplate(capturedImage, templateBitmap);
+                    //Toast.makeText(SelectTemplateActivity.this, "Number of contours: " + contours, Toast.LENGTH_SHORT).show();
                 } else {
                     Toast.makeText(SelectTemplateActivity.this, "Please capture an image and select templates first", Toast.LENGTH_SHORT).show();
                 }
@@ -153,11 +157,17 @@ public class SelectTemplateActivity extends Activity {
 
 
 
-    public int countMarkssingletemplate(Bitmap photoBitmap, Bitmap templateBitmap) {
+
+
+
+
+
+
+    public void countMarkssingletemplate(Bitmap photoBitmap, Bitmap templateBitmap) {
         // Check if input bitmaps are valid
         if (photoBitmap == null || templateBitmap == null) {
-            Log.e("countMarkssingletemplate", "Null bitmap detected");
-            return 0;
+            Log.e("findAndDisplayTemplate", "Null bitmap detected");
+            return;
         }
 
         // Convert Bitmaps to Mats
@@ -173,65 +183,32 @@ public class SelectTemplateActivity extends Activity {
 
         // Perform template matching
         Mat result = new Mat();
-        Imgproc.matchTemplate(imageMat, templateMat, result, Imgproc.TM_CCOEFF_NORMED);
+        Imgproc.matchTemplate(imageMat, templateMat, result, Imgproc.TM_CCOEFF);
+
+
+
 
         // Define threshold for template matching
-        double threshold = 0.8;
-        Core.compare(result, new Scalar(threshold), result, Core.CMP_GT);
+        double threshold = -0.5;
+        Core.compare(result, new Scalar(threshold), result, Core.CMP_LT);
 
-        // Find maximum value in the result matrix
-        Core.MinMaxLocResult mmr = Core.minMaxLoc(result);
-        Point maxLoc = mmr.maxLoc;
-
-        // Extract the bounding box of the template in the original image
-        org.opencv.core.Rect boundingBox = new org.opencv.core.Rect((int) maxLoc.x, (int) maxLoc.y, templateMat.cols(), templateMat.rows());
-
-        // Extract the region of interest (ROI) from the original image
-        // Adjust bounding box coordinates if necessary
-        int x = Math.max(boundingBox.x, 0);
-        int y = Math.max(boundingBox.y, 0);
-        int width = Math.min(boundingBox.width, imageMat.cols() - x);
-        int height = Math.min(boundingBox.height, imageMat.rows() - y);
-
-// Create ROI with adjusted bounding box
-        Rect adjustedBoundingBox = new Rect(x, y, width, height);
-        Mat roi = new Mat(imageMat, adjustedBoundingBox);
+        // Convert the result to the HSV color space
+        //Mat hsvMat = new Mat();
+        //Imgproc.cvtColor(result, hsvMat, Imgproc.COLOR_BGR2HSV);
 
 
-        // Convert the ROI to the HSV color space
-        Mat hsvMat = new Mat();
-        Imgproc.cvtColor(roi, hsvMat, Imgproc.COLOR_BGR2HSV);
-
-        // Define the lower and upper bounds for the red color in HSV
-        Scalar lowerBound = new Scalar(0, 100, 100);
-        Scalar upperBound = new Scalar(10, 255, 255);
-
-        // Create a mask for red color in HSV
-        Mat mask = new Mat();
-        Core.inRange(hsvMat, lowerBound, upperBound, mask);
-
-        // Find contours
-        List<MatOfPoint> contours = new ArrayList<>();
-        Mat hierarchy = new Mat();
-        Imgproc.findContours(mask, contours, hierarchy, Imgproc.RETR_EXTERNAL, Imgproc.CHAIN_APPROX_SIMPLE);
-
-        // Apply the mask to the original image
-        Mat resultImage = new Mat();
-        imageMat.copyTo(resultImage, mask);
 
         // Convert the result of template matching and the processed image to bitmaps for display
         Bitmap resultBitmapTemplateMatch = Bitmap.createBitmap(result.cols(), result.rows(), Bitmap.Config.ARGB_8888);
         Utils.matToBitmap(result, resultBitmapTemplateMatch);
-        Bitmap resultBitmapColorProcessing = Bitmap.createBitmap(resultImage.cols(), resultImage.rows(), Bitmap.Config.ARGB_8888);
-        Utils.matToBitmap(resultImage, resultBitmapColorProcessing);
-
-        // Display the resultBitmapTemplateMatch and resultBitmapColorProcessing in ImageViews or somewhere else
 
         // Display the resultBitmapTemplateMatch
-        ImageView resultImageView = findViewById(R.id.resultImageView);
         resultImageView.setImageBitmap(resultBitmapTemplateMatch);
-        return contours.size(); // Number of contours detected
+        resultImageView.setVisibility(View.VISIBLE); // Show the ImageView
+
+
+
     }
 
 
-}
+    }
