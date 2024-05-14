@@ -41,10 +41,10 @@ import java.io.IOException;
 
 public class SelectTemplateActivity extends Activity {
 
-    private static final int REQUEST_SELECT_TEMPLATES = 1;
+    private static final int REQUEST_SELECT_TEMPLATE = 1;
     private static final int REQUEST_IMAGE_CAPTURE = 2;
 
-    private ArrayList<Bitmap> selectedTemplates = new ArrayList<>();
+    private Bitmap selectedTemplate;
 
     private Bitmap capturedImage;
 
@@ -83,7 +83,7 @@ public class SelectTemplateActivity extends Activity {
                 Intent intent = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
                 intent.setType("image/*");
                 intent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true);
-                startActivityForResult(intent, REQUEST_SELECT_TEMPLATES);
+                startActivityForResult(intent, REQUEST_SELECT_TEMPLATE);
             }
         });
 
@@ -98,11 +98,9 @@ public class SelectTemplateActivity extends Activity {
         countMarksButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (capturedImage != null && !selectedTemplates.isEmpty()) {
-                    // Assuming you want to count contours for the first selected template
-                    Bitmap templateBitmap = selectedTemplates.get(0);
+                if (capturedImage != null && selectedTemplate != null) {
                     //int contours = countMarkssingletemplate(capturedImage, templateBitmap);
-                    countMarkssingletemplate(capturedImage, templateBitmap);
+                    countMarkssingletemplate(capturedImage, selectedTemplate);
 
                     //Toast.makeText(SelectTemplateActivity.this, "Number of contours: " + contours, Toast.LENGTH_SHORT).show();
                 } else {
@@ -136,29 +134,16 @@ public class SelectTemplateActivity extends Activity {
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
 
-        if (requestCode == REQUEST_SELECT_TEMPLATES && resultCode == RESULT_OK && data != null) {
-            if (data.getData() != null) {
-                // Handle single image selection
-                Bitmap selectedTemplateBitmap = getBitmapFromUri(data.getData());
-                if (selectedTemplateBitmap != null) {
-                    selectedTemplates.add(selectedTemplateBitmap);
-                } else {
-                    Toast.makeText(this, "Failed to load template image", Toast.LENGTH_SHORT).show();
-                }
-            } else if (data.getClipData() != null) {
-                // Handle multiple image selection
-                ClipData clipData = data.getClipData();
-                for (int i = 0; i < clipData.getItemCount(); i++) {
-                    Uri uri = clipData.getItemAt(i).getUri();
-                    Bitmap selectedTemplateBitmap = getBitmapFromUri(uri);
-                    if (selectedTemplateBitmap != null) {
-                        selectedTemplates.add(selectedTemplateBitmap);
-                    } else {
-                        Toast.makeText(this, "Failed to load template image", Toast.LENGTH_SHORT).show();
-                    }
-                }
+        if (requestCode == REQUEST_SELECT_TEMPLATE && resultCode == RESULT_OK && data != null) {
+            Uri uri = data.getData();
+            selectedTemplate = getBitmapFromUri(uri);
+            if (selectedTemplate != null) {
+                templateImageView.setImageBitmap(selectedTemplate);
+                templateImageView.setVisibility(View.VISIBLE);
+                Toast.makeText(this, "Template selected", Toast.LENGTH_SHORT).show();
+            } else {
+                Toast.makeText(this, "Failed to load template image", Toast.LENGTH_SHORT).show();
             }
-            Toast.makeText(this, "Template(s) selected", Toast.LENGTH_SHORT).show();
         } else if (requestCode == REQUEST_IMAGE_CAPTURE && resultCode == RESULT_OK && data != null) {
             Bundle extras = data.getExtras();
             if (extras != null && extras.containsKey("data")) {
@@ -306,7 +291,7 @@ public class SelectTemplateActivity extends Activity {
 
 // Draw keypoints on the captured image
         Mat outputCaptured = new Mat();
-        Features2d.drawKeypoints(imageMat, keypointsImage, outputCaptured, new Scalar(0, 255, 0), Features2d.DrawMatchesFlags_DRAW_RICH_KEYPOINTS);
+        Features2d.drawKeypoints(imageMat, keypointsImage, outputCaptured, new Scalar(0, 255, 0));
 
 // Convert the resulting captured image to bitmap
         Bitmap capturedBitmapWithKeypoints = Bitmap.createBitmap(outputCaptured.cols(), outputCaptured.rows(), Bitmap.Config.ARGB_8888);
@@ -315,6 +300,7 @@ public class SelectTemplateActivity extends Activity {
 // Display the capturedBitmapWithKeypoints
         capturedImageView.setImageBitmap(capturedBitmapWithKeypoints);
         capturedImageView.setVisibility(View.VISIBLE); // Show the ImageView
+
 
 
 
