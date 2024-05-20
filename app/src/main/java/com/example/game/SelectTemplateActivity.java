@@ -1,11 +1,13 @@
 package com.example.game;
 
+import android.annotation.SuppressLint;
 import android.app.Activity;
-import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
+import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
@@ -14,29 +16,29 @@ import android.widget.Toast;
 import org.opencv.android.OpenCVLoader;
 import org.opencv.android.Utils;
 import org.opencv.core.Core;
+import org.opencv.core.CvType;
 import org.opencv.core.DMatch;
 import org.opencv.core.KeyPoint;
 import org.opencv.core.Mat;
+import org.opencv.core.MatOfByte;
 import org.opencv.core.MatOfDMatch;
 import org.opencv.core.MatOfKeyPoint;
-import org.opencv.core.MatOfPoint;
 import org.opencv.core.Point;
 import org.opencv.core.Rect;
 import org.opencv.core.Scalar;
+import org.opencv.core.Size;
 import org.opencv.features2d.DescriptorExtractor;
 import org.opencv.features2d.DescriptorMatcher;
 import org.opencv.features2d.FeatureDetector;
 import org.opencv.features2d.Features2d;
+import org.opencv.features2d.ORB;
 import org.opencv.imgproc.Imgproc;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import android.util.Log;
-
-import android.content.ClipData;
-import android.net.Uri;
-import java.io.IOException;
+import java.util.stream.Collectors;
 
 
 public class SelectTemplateActivity extends Activity {
@@ -53,15 +55,16 @@ public class SelectTemplateActivity extends Activity {
 
     private Button countMarksButton;
 
-    private ImageView imageView;
+
+    private ImageView templatekeypointsImageView;
+    private ImageView capturedkeypointsImageView;
+    private ImageView matchingImageView;
 
     private ImageView resultImageView;
 
-    private ImageView templateImageView;
-
-    private ImageView capturedImageView;
 
 
+    @SuppressLint("MissingInflatedId")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -72,10 +75,10 @@ public class SelectTemplateActivity extends Activity {
         selectTemplatesButton = findViewById(R.id.selectTemplatesButton);
         captureImageButton = findViewById(R.id.captureImageButton);
         countMarksButton = findViewById(R.id.countMarksButton);
-        imageView = findViewById(R.id.imageView);
+        templatekeypointsImageView = findViewById(R.id.templatekeypointsImageView);
+        capturedkeypointsImageView = findViewById(R.id.capturedkeypointsImageView);
+        matchingImageView = findViewById(R.id.matchingImageView);
         resultImageView = findViewById(R.id.resultImageView);
-        templateImageView = findViewById(R.id.templateImageView);
-        capturedImageView = findViewById(R.id.capturedImageView);
 
         selectTemplatesButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -138,8 +141,6 @@ public class SelectTemplateActivity extends Activity {
             Uri uri = data.getData();
             selectedTemplate = getBitmapFromUri(uri);
             if (selectedTemplate != null) {
-                templateImageView.setImageBitmap(selectedTemplate);
-                templateImageView.setVisibility(View.VISIBLE);
                 Toast.makeText(this, "Template selected", Toast.LENGTH_SHORT).show();
             } else {
                 Toast.makeText(this, "Failed to load template image", Toast.LENGTH_SHORT).show();
@@ -149,8 +150,8 @@ public class SelectTemplateActivity extends Activity {
             if (extras != null && extras.containsKey("data")) {
                 capturedImage = (Bitmap) extras.get("data");
                 // Display the captured image in the ImageView
-                imageView.setImageBitmap(capturedImage);
-                imageView.setVisibility(View.VISIBLE); // Show the ImageView
+                //imageView.setImageBitmap(capturedImage);
+                //imageView.setVisibility(View.VISIBLE); // Show the ImageView
                 Toast.makeText(this, "Image captured", Toast.LENGTH_SHORT).show();
             } else {
                 Toast.makeText(this, "Failed to capture image", Toast.LENGTH_SHORT).show();
@@ -179,29 +180,28 @@ public class SelectTemplateActivity extends Activity {
         Utils.bitmapToMat(photoBitmap, imageMat);
         Utils.bitmapToMat(templateBitmap, templateMat);
 
-        // Convert the template image to grayscale
+        // Convert the images to grayscale
         Mat grayTemplate = new Mat();
         Imgproc.cvtColor(templateMat, grayTemplate, Imgproc.COLOR_BGR2GRAY);
-
-        // Convert the input image to grayscale
         Mat grayImage = new Mat();
         Imgproc.cvtColor(imageMat, grayImage, Imgproc.COLOR_BGR2GRAY);
 
-        // Initialize ORB detector
-        FeatureDetector detector = FeatureDetector.create(FeatureDetector.ORB);
+        // Resize the template image to match the size of the captured image
+        Mat resizedTemplateMat = new Mat();
+        Imgproc.resize(grayTemplate, resizedTemplateMat, grayImage.size());
 
-        // Detect keypoints and compute descriptors for the template
+        // Initialize ORB detector
+        ORB orb = ORB.create();
+
+        // Detect keypoints and compute descriptors for the resized template
         MatOfKeyPoint keypointsTemplate = new MatOfKeyPoint();
-        detector.detect(grayTemplate, keypointsTemplate);
         Mat descriptorsTemplate = new Mat();
-        DescriptorExtractor extractor = DescriptorExtractor.create(DescriptorExtractor.ORB);
-        extractor.compute(grayTemplate, keypointsTemplate, descriptorsTemplate);
+        orb.detectAndCompute(resizedTemplateMat, new Mat(), keypointsTemplate, descriptorsTemplate);
 
         // Detect keypoints and compute descriptors for the input image
         MatOfKeyPoint keypointsImage = new MatOfKeyPoint();
-        detector.detect(grayImage, keypointsImage);
         Mat descriptorsImage = new Mat();
-        extractor.compute(grayImage, keypointsImage, descriptorsImage);
+        orb.detectAndCompute(grayImage, new Mat(), keypointsImage, descriptorsImage);
 
         // Match descriptors using Brute Force matcher
         DescriptorMatcher matcher = DescriptorMatcher.create(DescriptorMatcher.BRUTEFORCE_HAMMING);
@@ -210,102 +210,117 @@ public class SelectTemplateActivity extends Activity {
 
         // Filter matches based on distance
         List<DMatch> matchesList = matches.toList();
-        double minDist = Double.MAX_VALUE;
-        for (DMatch match : matchesList) {
-            double dist = match.distance;
-            if (dist < minDist) {
-                minDist = dist;
-            }
-        }
+        List<DMatch> filteredMatches = matchesList.stream().filter(m -> m.distance < 55).collect(Collectors.toList());
 
-        // Filtered matches will be those with distance less than 3 times the minimum distance
-        List<DMatch> filteredMatches = new ArrayList<>();
-        double thresholdDist = 3 * minDist;
-        for (DMatch match : matchesList) {
-            if (match.distance < thresholdDist) {
-                filteredMatches.add(match);
-            }
-        }
 
-        // If enough good matches are found, the template is considered found
-        if (filteredMatches.size() > 10) { // Adjust this threshold as needed
-            Log.d("findTemplateAndDisplayInCapturedPhoto", "Template found in the image");
+        // Draw keypoints on the template and captured images
+        Mat outputTemplateKeypoints = new Mat();
+        Mat outputCapturedKeypoints = new Mat();
+        Features2d.drawKeypoints(templateMat, keypointsTemplate, outputTemplateKeypoints, new Scalar(0, 255, 0), Features2d.DrawMatchesFlags_DRAW_RICH_KEYPOINTS);
+        Features2d.drawKeypoints(imageMat, keypointsImage, outputCapturedKeypoints, new Scalar(0, 255, 0));
 
-            // Find the bounding box around the matched region
-            Rect boundingBox = new Rect();
-            List<KeyPoint> keypointsTemplateList = keypointsTemplate.toList();
-            List<KeyPoint> keypointsImageList = keypointsImage.toList();
-            List<Point> matchedPoints = new ArrayList<>();
-            for (DMatch match : filteredMatches) {
-                Point imgPoint = keypointsImageList.get(match.trainIdx).pt;
-                matchedPoints.add(imgPoint);
-            }
+        // Convert and display the template image with keypoints
+        Bitmap templateBitmapWithKeypoints = Bitmap.createBitmap(outputTemplateKeypoints.cols(), outputTemplateKeypoints.rows(), Bitmap.Config.ARGB_8888);
+        Utils.matToBitmap(outputTemplateKeypoints, templateBitmapWithKeypoints);
+        templatekeypointsImageView.setImageBitmap(templateBitmapWithKeypoints);
+        templatekeypointsImageView.setVisibility(View.VISIBLE);
 
-            // Find the min and max points to create the bounding box
-            Point minPoint = new Point(Double.MAX_VALUE, Double.MAX_VALUE);
-            Point maxPoint = new Point(Double.MIN_VALUE, Double.MIN_VALUE);
-            for (Point point : matchedPoints) {
-                minPoint.x = Math.min(minPoint.x, point.x);
-                minPoint.y = Math.min(minPoint.y, point.y);
-                maxPoint.x = Math.max(maxPoint.x, point.x);
-                maxPoint.y = Math.max(maxPoint.y, point.y);
-            }
 
-            // Create the bounding box
-            boundingBox.x = (int) minPoint.x;
-            boundingBox.y = (int) minPoint.y;
-            boundingBox.width = (int) (maxPoint.x - minPoint.x);
-            boundingBox.height = (int) (maxPoint.y - minPoint.y);
+        // Convert and display the captured image with keypoints
+        Bitmap capturedBitmapWithKeypoints = Bitmap.createBitmap(outputCapturedKeypoints.cols(), outputCapturedKeypoints.rows(), Bitmap.Config.ARGB_8888);
+        Utils.matToBitmap(outputCapturedKeypoints, capturedBitmapWithKeypoints);
+        capturedkeypointsImageView.setImageBitmap(capturedBitmapWithKeypoints);
+        capturedkeypointsImageView.setVisibility(View.VISIBLE);
 
-            // Crop the original image using the bounding box
-            Mat croppedImage = new Mat(imageMat, boundingBox);
 
-            // Convert the resulting image to bitmap
-            Bitmap resultBitmap = Bitmap.createBitmap(croppedImage.cols(), croppedImage.rows(), Bitmap.Config.ARGB_8888);
-            Utils.matToBitmap(croppedImage, resultBitmap);
 
-            // Display the resultBitmap
-            resultImageView.setImageBitmap(resultBitmap);
-            resultImageView.setVisibility(View.VISIBLE); // Show the ImageView
+
+        // Ensure matches are valid
+        List<KeyPoint> keypointsTemplateList = keypointsTemplate.toList();
+        List<KeyPoint> keypointsImageList = keypointsImage.toList();
+
+        if (filteredMatches.size() < 5) {
+            Log.d("findTemplateAndDisplayInCapturedPhoto", "Template not found in the image or not enough matches");
         } else {
-            // Template not found, handle accordingly
-            Log.e("findTemplateAndDisplayInCapturedPhoto", "Template not found in the image");
+            List<DMatch> validMatches = new ArrayList<>();
+            for (DMatch match : filteredMatches) {
+                if (match.queryIdx >= 0 && match.queryIdx < keypointsTemplateList.size() &&
+                        match.trainIdx >= 0 && match.trainIdx < keypointsImageList.size()) {
+                    validMatches.add(match);
+                }
+            }
+
+            if (validMatches.isEmpty()) {
+                Log.d("findTemplateAndDisplayInCapturedPhoto", "No valid matches found");
+            } else {
+                MatOfDMatch goodMatches = new MatOfDMatch();
+                goodMatches.fromList(validMatches);
+
+                // Combine the resized template and captured images side by side
+                Mat combinedImage = new Mat();
+                Core.hconcat(Arrays.asList(resizedTemplateMat, grayImage), combinedImage);
+
+                // Draw matches on the combined image
+                Mat outputTemplateMatches = new Mat();
+                Features2d.drawMatches(resizedTemplateMat, keypointsTemplate, grayImage, keypointsImage, goodMatches, outputTemplateMatches, Scalar.all(-1), Scalar.all(-1), new MatOfByte(), Features2d.DrawMatchesFlags_NOT_DRAW_SINGLE_POINTS);
+
+                // Convert the combined image with matches to bitmap
+                Bitmap templateMatchesBitmap = Bitmap.createBitmap(outputTemplateMatches.cols(), outputTemplateMatches.rows(), Bitmap.Config.ARGB_8888);
+                Utils.matToBitmap(outputTemplateMatches, templateMatchesBitmap);
+
+                // Display the combined image with matches
+                matchingImageView.setImageBitmap(templateMatchesBitmap);
+                matchingImageView.setVisibility(View.VISIBLE);
+                Log.d("findTemplateAndDisplayInCapturedPhoto", "Template was found in the image");
+
+                // Find the bounding box around the matched region
+                Rect boundingBox = new Rect();
+                List<Point> matchedPoints = new ArrayList<>();
+                for (DMatch match : filteredMatches) {
+                    Point imgPoint = keypointsImageList.get(match.trainIdx).pt;
+                    matchedPoints.add(imgPoint);
+                }
+
+                // Find the min and max points to create the bounding box
+                Point minPoint = new Point(Double.MAX_VALUE, Double.MAX_VALUE);
+                Point maxPoint = new Point(Double.MIN_VALUE, Double.MIN_VALUE);
+                for (Point point : matchedPoints) {
+                    minPoint.x = Math.min(minPoint.x, point.x);
+                    minPoint.y = Math.min(minPoint.y, point.y);
+                    maxPoint.x = Math.max(maxPoint.x, point.x);
+                    maxPoint.y = Math.max(maxPoint.y, point.y);
+                }
+
+                // Create the bounding box
+                boundingBox.x = (int) minPoint.x;
+                boundingBox.y = (int) minPoint.y;
+                boundingBox.width = (int) (maxPoint.x - minPoint.x);
+                boundingBox.height = (int) (maxPoint.y - minPoint.y);
+
+                // Crop the original image using the bounding box
+                Mat croppedImage = new Mat(imageMat, boundingBox);
+
+                // Convert the resulting image to bitmap
+                Bitmap resultBitmap = Bitmap.createBitmap(croppedImage.cols(), croppedImage.rows(), Bitmap.Config.ARGB_8888);
+                Utils.matToBitmap(croppedImage, resultBitmap);
+
+                // Display the resultBitmap
+                resultImageView.setImageBitmap(resultBitmap);
+                resultImageView.setVisibility(View.VISIBLE); // Show the ImageView
+            }
         }
 
-
-
-
-
-
-        // Draw keypoints on the template image
-        Mat outputTemplate = new Mat();
-        Features2d.drawKeypoints(templateMat, keypointsTemplate, outputTemplate, new Scalar(0, 255, 0), Features2d.DrawMatchesFlags_DRAW_RICH_KEYPOINTS);
-
-// Convert the resulting template image to bitmap
-        Bitmap templateBitmapWithKeypoints = Bitmap.createBitmap(outputTemplate.cols(), outputTemplate.rows(), Bitmap.Config.ARGB_8888);
-        Utils.matToBitmap(outputTemplate, templateBitmapWithKeypoints);
-
-// Display the templateBitmapWithKeypoints
-        templateImageView.setImageBitmap(templateBitmapWithKeypoints);
-        templateImageView.setVisibility(View.VISIBLE); // Show the ImageView
-
-// Draw keypoints on the captured image
-        Mat outputCaptured = new Mat();
-        Features2d.drawKeypoints(imageMat, keypointsImage, outputCaptured, new Scalar(0, 255, 0));
-
-// Convert the resulting captured image to bitmap
-        Bitmap capturedBitmapWithKeypoints = Bitmap.createBitmap(outputCaptured.cols(), outputCaptured.rows(), Bitmap.Config.ARGB_8888);
-        Utils.matToBitmap(outputCaptured, capturedBitmapWithKeypoints);
-
-// Display the capturedBitmapWithKeypoints
-        capturedImageView.setImageBitmap(capturedBitmapWithKeypoints);
-        capturedImageView.setVisibility(View.VISIBLE); // Show the ImageView
-
-
-
-
-
+        // Log keypoints sizes
+        Log.d("Keypoints Size", "Template Keypoints Size: " + keypointsTemplate.rows());
+        Log.d("Keypoints Size", "Captured Keypoints Size: " + keypointsImage.rows());
+        Log.d("Keypoints Size", "Matched Keypoints Size: " + matches.rows());
+        Log.d("Keypoints Size", "Filtered Matches Keypoints Size: " + filteredMatches.size());
     }
 
 
+
+
+
 }
+
+
