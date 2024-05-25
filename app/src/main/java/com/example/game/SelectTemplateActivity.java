@@ -63,7 +63,6 @@ public class SelectTemplateActivity extends Activity {
     private ImageView resultImageView;
 
 
-
     @SuppressLint("MissingInflatedId")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -160,110 +159,100 @@ public class SelectTemplateActivity extends Activity {
     }
 
 
-
-
-
-
-
-
     public void countMarkssingletemplate(Bitmap photoBitmap, Bitmap templateBitmap) {
-// Check if input bitmaps are valid
+        // Check if input bitmaps are valid
         if (photoBitmap == null || templateBitmap == null) {
             Log.e("findTemplateAndDisplayInCapturedPhoto", "Null bitmap detected");
             return;
         }
 
-
-
-// Convert Bitmaps to Mats
+        // Convert Bitmaps to Mats
         Mat imageMat = new Mat();
         Mat templateMat = new Mat();
         Utils.bitmapToMat(photoBitmap, imageMat);
         Utils.bitmapToMat(templateBitmap, templateMat);
 
-
-// Determine the ratio of the captured image's width and height
+        // Determine the ratio of the captured image's width and height
         float captureRatio = (float) templateBitmap.getWidth() / photoBitmap.getWidth();
 
-
-// Resize the template image based on the capture ratio
+        // Resize the template image based on the capture ratio
         int newWidth = (int) (imageMat.cols());
         int newHeight = (int) (templateBitmap.getHeight() / captureRatio);
-
         Mat resizedTemplateMat = new Mat();
         Imgproc.resize(templateMat, resizedTemplateMat, new Size(newWidth, newHeight));
-
-
-
-
-
 
         Log.d("Template Matching", "Image cols: " + imageMat.cols() + ", rows: " + imageMat.rows());
         Log.d("Template Matching", "template cols: " + resizedTemplateMat.cols() + ", rows: " + resizedTemplateMat.rows());
 
-
-
-
-
-
-
-// Convert the images to grayscale
+        // Convert the images to grayscale
         Mat grayTemplate = new Mat();
         Imgproc.cvtColor(resizedTemplateMat, grayTemplate, Imgproc.COLOR_BGR2GRAY);
         Mat grayImage = new Mat();
         Imgproc.cvtColor(imageMat, grayImage, Imgproc.COLOR_BGR2GRAY);
 
-// Use matchTemplate method for template matching
+        // Use matchTemplate method for template matching
         Mat result = new Mat();
         Imgproc.matchTemplate(grayImage, grayTemplate, result, Imgproc.TM_CCOEFF_NORMED);
 
-// Normalize the result
+        // Normalize the result
         Core.normalize(result, result, 0, 1, Core.NORM_MINMAX, -1, new Mat());
 
-
-
-// Localize the best match with minMaxLoc
+        // Localize the best match with minMaxLoc
         Core.MinMaxLocResult mmr = Core.minMaxLoc(result);
         Point matchLoc = mmr.maxLoc;
 
-// Draw rectangle on the detected template
+        // Draw rectangle on the detected template
         int templateWidth = resizedTemplateMat.cols();
         int templateHeight = resizedTemplateMat.rows();
         Imgproc.rectangle(imageMat, matchLoc, new Point(matchLoc.x + templateWidth, matchLoc.y + templateHeight), new Scalar(0, 255, 0), 2);
 
+        // Extract the region of interest (ROI) where the template was matched
+        Rect roi = new Rect((int) matchLoc.x, (int) matchLoc.y, templateWidth, templateHeight);
+        Mat roiMat = new Mat(imageMat, roi);
 
+        // Count the number of red-like pixels based on the difference in RGB channels
+        int redLikePixelCount = 0;
+        for (int y = 0; y < roiMat.rows(); y++) {
+            for (int x = 0; x < roiMat.cols(); x++) {
+                double[] pixel = roiMat.get(y, x);
+                double blue = pixel[0], green = pixel[1], red = pixel[2];
 
+                // Check if the difference between any two of R, G, and B is greater than 50
+                if (Math.abs(red - green) > 35 || Math.abs(red - blue) > 35 || Math.abs(green - blue) > 35) {
+                    redLikePixelCount++;
+                    // Highlight the pixel in the original image (for visualization)
+                    if (roiMat.channels() == 4) {
+                        roiMat.put(y, x, new double[]{0, 0, 255, 255}); // Set it to pure red with full alpha in BGRA
+                    } else {
+                        roiMat.put(y, x, new double[]{0, 0, 255}); // Set it to pure red in BGR
+                    }
+                }
+            }
+        }
 
-// Convert the imageMat with the rectangle to a bitmap
-        Bitmap resultBitmapWithRectangle = Bitmap.createBitmap(imageMat.cols(), imageMat.rows(), Bitmap.Config.ARGB_8888);
-        Utils.matToBitmap(imageMat, resultBitmapWithRectangle);
+        Log.d("Template Matching", "Number of red-like pixels: " + redLikePixelCount);
 
-// Display the imageMat with the rectangle
+        // Convert the imageMat with the rectangle and highlighted red-like pixels to a bitmap
+        Bitmap resultBitmapWithRectangle = Bitmap.createBitmap(roiMat.cols(), roiMat.rows(), Bitmap.Config.ARGB_8888); // 4 channels for BGRA
+        Utils.matToBitmap(roiMat, resultBitmapWithRectangle);
+
+        // Display the imageMat with the rectangle
         resultImageView.setImageBitmap(resultBitmapWithRectangle);
         resultImageView.setVisibility(View.VISIBLE);
 
-
-
-
-
-
-
-
+        // Log the coordinates of the maximum value
+        Log.d("Template Matching", "Coordinates of maximum value: (" + matchLoc.x + ", " + matchLoc.y + ")");
 
         double maxValue = mmr.maxVal;
         Log.d("Template Matching", "Maximum value in result matrix: " + maxValue);
 
         Point maxLoc = mmr.maxLoc;
-// Log the coordinates of the maximum value
+        // Log the coordinates of the maximum value
         int maxX = (int) maxLoc.x;
         int maxY = (int) maxLoc.y;
         Log.d("Template Matching", "Coordinates of maximum value: (" + maxX + ", " + maxY + ")");
 
-
         Log.d("Template Matching", "Match location: {" + matchLoc.x + ", " + matchLoc.y + "}");
     }
 
-
-
 }
-
