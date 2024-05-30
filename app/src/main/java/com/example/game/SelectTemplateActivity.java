@@ -152,6 +152,7 @@ public class SelectTemplateActivity extends Activity {
 
 
 
+
         setTopicAndTemplateButton.setOnClickListener(new View.OnClickListener() {
             private int remainingQuestions; // Track remaining questions per page
             private int currentQuestionIndex = 0; // Track the index of the current question
@@ -185,29 +186,31 @@ public class SelectTemplateActivity extends Activity {
                 if (remainingQuestions > 0) {
                     // Show toast for each question until the last one
                     Toast.makeText(SelectTemplateActivity.this, "Saved successfully! Enter topic and select template for next question.", Toast.LENGTH_SHORT).show();
-                } else {
+                } else if (remainingQuestions == 0) {
                     // Check if the current page is the last page
                     if (pageNumberEditText.getText().toString().equals(numberOfPagesEditText.getText().toString())) {
                         // Show toast to capture all pages of the exam paper
                         Toast.makeText(SelectTemplateActivity.this, "Capture all pages of exam paper", Toast.LENGTH_SHORT).show();
-                        remainingQuestions = 0; // Reset remainingQuestions
-                        currentQuestionIndex = 0; // Reset question index
-                        return; // Stop further execution
                     } else {
                         // Show toast to enter the next page number when the last question is reached
                         Toast.makeText(SelectTemplateActivity.this, "Enter next page number", Toast.LENGTH_SHORT).show();
-                        remainingQuestions = 0; // Reset remainingQuestions for the next page
-                        currentQuestionIndex = 0; // Reset question index for the next page
                     }
+                    // Reset for the next page
+                    remainingQuestions = 0; // Reset remainingQuestions
+                    currentQuestionIndex = 0; // Reset question index
+                    numberOfQuestionsPerPageEditText.setText(""); // Clear the number of questions EditText
                 }
 
-                // Update the number of questions EditText with the decremented value
-                numberOfQuestionsPerPageEditText.setText(String.valueOf(remainingQuestions));
+                // Update the number of questions EditText with the decremented value if not zero
+                if (remainingQuestions > 0) {
+                    numberOfQuestionsPerPageEditText.setText(String.valueOf(remainingQuestions));
+                }
 
                 // Clear the topic EditText
                 topicEditText.setText("");
             }
         });
+
 
 
 
