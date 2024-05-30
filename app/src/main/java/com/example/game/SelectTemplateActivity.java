@@ -2,6 +2,8 @@ package com.example.game;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.net.Uri;
@@ -42,18 +44,27 @@ public class SelectTemplateActivity extends Activity {
 
     private int numberOfPages;
     private int currentPage = 1;
-    private List<Map<String, Object>> templatesList = new ArrayList<>();
+    private Map<Integer, List<Map<String, Object>>> templatesMap = new HashMap<>();
     private List<Bitmap> capturedImages = new ArrayList<>();
+
+    private List<Map<String, Object>> templatesList = new ArrayList<>();
+
     private Map<String, Integer> marksByTopic = new HashMap<>();
 
     private Bitmap selectedTemplate;
     private Bitmap capturedImage;
 
     private Button addPageButton;
+
+    private Button setPageNumberButton;
+    private Button setNumberOfQuestionsButton;
+    private Button setTopicAndTemplateButton;
+
+
     private Button selectTemplatesButton;
     private Button captureImageButton;
     private Button countMarksButton;
-
+    private EditText numberOfQuestionsPerPageEditText;
     private EditText numberOfPagesEditText;
     private EditText pageNumberEditText;
     private EditText topicEditText;
@@ -68,6 +79,7 @@ public class SelectTemplateActivity extends Activity {
         OpenCVLoader.initDebug();
 
         numberOfPagesEditText = findViewById(R.id.numberOfPagesEditText);
+        numberOfQuestionsPerPageEditText = findViewById(R.id.numberOfQuestionsPerPageEditText);
         pageNumberEditText = findViewById(R.id.pageNumberEditText);
         topicEditText = findViewById(R.id.topicEditText);
 
@@ -75,7 +87,9 @@ public class SelectTemplateActivity extends Activity {
         selectTemplatesButton = findViewById(R.id.selectTemplatesButton);
         captureImageButton = findViewById(R.id.captureImageButton);
         countMarksButton = findViewById(R.id.countMarksButton);
-
+        setNumberOfQuestionsButton = findViewById(R.id.setNumberOfQuestionsButton);
+        setPageNumberButton = findViewById(R.id.setPageNumberButton);
+        setTopicAndTemplateButton = findViewById(R.id.setTopicAndTemplateButton);
 
         resultImageView = findViewById(R.id.resultImageView);
 
@@ -86,27 +100,118 @@ public class SelectTemplateActivity extends Activity {
                     Toast.makeText(SelectTemplateActivity.this, "Enter the number of pages", Toast.LENGTH_SHORT).show();
                     return;
                 }
+
+                // Get the number of questions for the current page
+                //int numberOfQuestions = Integer.parseInt(numberOfQuestionsPerPageEditText.getText().toString());
+                Toast.makeText(SelectTemplateActivity.this, "Enter page number", Toast.LENGTH_SHORT).show();
+
                 numberOfPages = Integer.parseInt(numberOfPagesEditText.getText().toString());
                 currentPage = 1;
-                templatesList.clear();
+                templatesMap.clear();
                 capturedImages.clear();
                 marksByTopic.clear();
-                Toast.makeText(SelectTemplateActivity.this, "Number of pages set to " + numberOfPages, Toast.LENGTH_SHORT).show();
+                //Toast.makeText(SelectTemplateActivity.this, "Number of pages set to " + numberOfPages, Toast.LENGTH_SHORT).show();
             }
         });
 
         selectTemplatesButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (pageNumberEditText.getText().toString().isEmpty() || topicEditText.getText().toString().isEmpty()) {
-                    Toast.makeText(SelectTemplateActivity.this, "Enter page number and topic", Toast.LENGTH_SHORT).show();
+                if (pageNumberEditText.getText().toString().isEmpty() || topicEditText.getText().toString().isEmpty() || numberOfQuestionsPerPageEditText.getText().toString().isEmpty()) {
+                    Toast.makeText(SelectTemplateActivity.this, "Enter page number, topic, and number of questions per page", Toast.LENGTH_SHORT).show();
                     return;
                 }
+
+                // Get page number and topic from the EditText fields
+                final int pageNumber = Integer.parseInt(pageNumberEditText.getText().toString());
+                String topic = topicEditText.getText().toString();
+
+                // Start the intent to select a template image
                 Intent intent = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
                 intent.setType("image/*");
                 startActivityForResult(intent, REQUEST_SELECT_TEMPLATE);
             }
         });
+
+
+        setPageNumberButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Toast.makeText(SelectTemplateActivity.this, "Enter number of questions in current page", Toast.LENGTH_SHORT).show();
+            }
+        });
+
+
+        setNumberOfQuestionsButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Toast.makeText(SelectTemplateActivity.this, "Enter topic and select template for current question", Toast.LENGTH_SHORT).show();
+            }
+        });
+
+
+
+
+        setTopicAndTemplateButton.setOnClickListener(new View.OnClickListener() {
+            private int remainingQuestions; // Track remaining questions per page
+            private int currentQuestionIndex = 0; // Track the index of the current question
+
+            @Override
+            public void onClick(View v) {
+                // Initialize remainingQuestions if not already initialized
+                if (remainingQuestions == 0) {
+                    remainingQuestions = Integer.parseInt(numberOfQuestionsPerPageEditText.getText().toString());
+                }
+
+                // Check if topic is not entered
+                if (topicEditText.getText().toString().isEmpty()) {
+                    Toast.makeText(SelectTemplateActivity.this, "Topic not entered for current question", Toast.LENGTH_LONG).show();
+                    return; // Ensure no further execution
+                }
+
+                // Check if template is not selected for the current question on the current page
+                int currentPageNumber = Integer.parseInt(pageNumberEditText.getText().toString());
+                List<Map<String, Object>> templatesForCurrentPage = templatesMap.get(currentPageNumber);
+
+                if (templatesForCurrentPage == null || currentQuestionIndex >= templatesForCurrentPage.size() || templatesForCurrentPage.get(currentQuestionIndex).isEmpty()) {
+                    Toast.makeText(SelectTemplateActivity.this, "Template not selected for current question", Toast.LENGTH_LONG).show();
+                    return; // Ensure no further execution
+                }
+
+                // Decrement the number of questions on the current page
+                remainingQuestions--;
+                currentQuestionIndex++; // Move to the next question
+
+                if (remainingQuestions > 0) {
+                    // Show toast for each question until the last one
+                    Toast.makeText(SelectTemplateActivity.this, "Saved successfully! Enter topic and select template for next question.", Toast.LENGTH_SHORT).show();
+                } else {
+                    // Check if the current page is the last page
+                    if (pageNumberEditText.getText().toString().equals(numberOfPagesEditText.getText().toString())) {
+                        // Show toast to capture all pages of the exam paper
+                        Toast.makeText(SelectTemplateActivity.this, "Capture all pages of exam paper", Toast.LENGTH_SHORT).show();
+                        remainingQuestions = 0; // Reset remainingQuestions
+                        currentQuestionIndex = 0; // Reset question index
+                        return; // Stop further execution
+                    } else {
+                        // Show toast to enter the next page number when the last question is reached
+                        Toast.makeText(SelectTemplateActivity.this, "Enter next page number", Toast.LENGTH_SHORT).show();
+                        remainingQuestions = 0; // Reset remainingQuestions for the next page
+                        currentQuestionIndex = 0; // Reset question index for the next page
+                    }
+                }
+
+                // Update the number of questions EditText with the decremented value
+                numberOfQuestionsPerPageEditText.setText(String.valueOf(remainingQuestions));
+
+                // Clear the topic EditText
+                topicEditText.setText("");
+            }
+        });
+
+
+
+
 
         captureImageButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -129,6 +234,7 @@ public class SelectTemplateActivity extends Activity {
                 countMarksForAllPages();
             }
         });
+
     }
 
     private void dispatchTakePictureIntent() {
@@ -163,8 +269,12 @@ public class SelectTemplateActivity extends Activity {
                 templateData.put("template", selectedTemplate);
                 templateData.put("topic", topic);
                 templateData.put("page", pageNumber);
-                templatesList.add(templateData);
-                Toast.makeText(this, "Template and topic added for page " + pageNumber, Toast.LENGTH_SHORT).show();
+
+                if (!templatesMap.containsKey(pageNumber)) {
+                    templatesMap.put(pageNumber, new ArrayList<>());
+                }
+                templatesMap.get(pageNumber).add(templateData);
+
             } else {
                 Toast.makeText(this, "Failed to load template image", Toast.LENGTH_SHORT).show();
             }
@@ -184,9 +294,9 @@ public class SelectTemplateActivity extends Activity {
     private void countMarksForAllPages() {
         for (int pageNumber = 1; pageNumber <= numberOfPages; pageNumber++) {
             Bitmap capturedPage = capturedImages.get(pageNumber - 1);
-            for (Map<String, Object> templateData : templatesList) {
-                int templatePage = (int) templateData.get("page");
-                if (templatePage == pageNumber) {
+            List<Map<String, Object>> templatesForPage = templatesMap.get(pageNumber);
+            if (templatesForPage != null) {
+                for (Map<String, Object> templateData : templatesForPage) {
                     Bitmap template = (Bitmap) templateData.get("template");
                     String topic = (String) templateData.get("topic");
                     int marks = countMarksSingleTemplate(capturedPage, template);
@@ -199,7 +309,7 @@ public class SelectTemplateActivity extends Activity {
 
     private int countMarksSingleTemplate(Bitmap photoBitmap, Bitmap templateBitmap) {
         if (photoBitmap == null || templateBitmap == null) {
-            Log.e("findTemplateAndDisplayInCapturedPhoto", "Null bitmap detected");
+            Log.e("countMarksSingleTemplate", "Null bitmap detected");
             return 0;
         }
 
@@ -214,9 +324,6 @@ public class SelectTemplateActivity extends Activity {
         int newHeight = (int) (templateBitmap.getHeight() / captureRatio);
         Mat resizedTemplateMat = new Mat();
         Imgproc.resize(templateMat, resizedTemplateMat, new Size(newWidth, newHeight));
-
-        Log.d("Template Matching", "Image cols: " + imageMat.cols() + ", rows: " + imageMat.rows());
-        Log.d("Template Matching", "Template cols: " + resizedTemplateMat.cols() + ", rows: " + resizedTemplateMat.rows());
 
         Mat result = new Mat();
         Imgproc.matchTemplate(imageMat, resizedTemplateMat, result, Imgproc.TM_CCOEFF_NORMED);
@@ -259,7 +366,7 @@ public class SelectTemplateActivity extends Activity {
             }
         }
 
-        Log.d("Template Matching", "Number of thick lines: " + thickLineCount);
+        Log.d("countMarksSingleTemplate", "Number of thick lines: " + thickLineCount);
 
         Bitmap resultBitmapWithRectangle = Bitmap.createBitmap(roiMat.cols(), roiMat.rows(), Bitmap.Config.ARGB_8888);
         Utils.matToBitmap(roiMat, resultBitmapWithRectangle);

@@ -5,88 +5,123 @@
     android:padding="16dp">
 
     <!-- EditText for number of pages -->
-    <EditText
-        android:id="@+id/numberOfPagesEditText"
-        android:layout_width="182dp"
-        android:layout_height="76dp"
-        android:layout_alignParentStart="true"
-        android:layout_marginTop="16dp"
-        android:hint="Number of Pages"
-        android:inputType="number" />
 
-    <!-- Button to set number of pages -->
-
-    <!-- EditText for page number -->
-
-    <!-- EditText for topic -->
-
-    <Button
-        android:id="@+id/addPageButton"
-        android:layout_width="150dp"
-        android:layout_height="61dp"
-        android:layout_alignTop="@id/numberOfPagesEditText"
-        android:layout_marginStart="47dp"
-        android:layout_marginTop="116dp"
-        android:layout_toEndOf="@id/numberOfPagesEditText"
-        android:text="Set Pages" />
-
-    <!-- Button to select templates from gallery -->
-
-    <!-- Button to capture an image -->
-
-    <!-- Button to count marks -->
-
-    <!-- ImageView to display the captured image -->
-
-    <!-- ImageView to display template keypoints -->
-
-    <!-- ImageView to display captured keypoints -->
 
     <!-- ImageView to display the result -->
 
     <EditText
-        android:id="@+id/pageNumberEditText"
-        android:layout_width="159dp"
-        android:layout_height="57dp"
-        android:layout_below="@id/numberOfPagesEditText"
+        android:id="@+id/numberOfPagesEditText"
+        android:layout_width="182dp"
+        android:layout_height="63dp"
         android:layout_alignParentStart="true"
         android:layout_marginStart="17dp"
-        android:layout_marginTop="27dp"
+        android:layout_marginTop="16dp"
+        android:hint="Number of Pages"
+        android:inputType="number" />
+
+    <Button
+        android:id="@+id/addPageButton"
+        android:layout_width="141dp"
+        android:layout_height="wrap_content"
+        android:layout_alignTop="@id/numberOfPagesEditText"
+        android:layout_marginStart="56dp"
+        android:layout_marginTop="17dp"
+        android:layout_toEndOf="@id/numberOfPagesEditText"
+        android:text="Set Pages" />
+
+
+    <Button
+        android:id="@+id/setPageNumberButton"
+        android:layout_width="201dp"
+        android:layout_height="wrap_content"
+        android:layout_alignTop="@id/numberOfPagesEditText"
+        android:layout_marginStart="10dp"
+        android:layout_marginTop="117dp"
+        android:layout_toEndOf="@id/numberOfPagesEditText"
+        android:text="Set Page Number" />
+
+    <Button
+        android:id="@+id/setNumberOfQuestionsButton"
+        android:layout_width="240dp"
+        android:layout_height="wrap_content"
+        android:layout_alignTop="@id/numberOfPagesEditText"
+        android:layout_marginStart="-60dp"
+        android:layout_marginTop="247dp"
+        android:layout_toEndOf="@id/numberOfPagesEditText"
+        android:text="Set Number of Questions" />
+
+    <Button
+        android:id="@+id/setTopicAndTemplateButton"
+        android:layout_width="112dp"
+        android:layout_height="80dp"
+        android:layout_alignTop="@id/numberOfPagesEditText"
+        android:layout_marginStart="65dp"
+        android:layout_marginTop="320dp"
+        android:layout_toEndOf="@id/numberOfPagesEditText"
+        android:text="Set Topic and Template" />
+
+
+    <!-- EditText for number of questions per page -->
+
+
+    <EditText
+        android:id="@+id/pageNumberEditText"
+        android:layout_width="159dp"
+        android:layout_height="63dp"
+        android:layout_below="@id/numberOfPagesEditText"
+        android:layout_alignParentStart="true"
+        android:layout_marginStart="11dp"
+        android:layout_marginTop="33dp"
         android:hint="Page Number"
         android:inputType="number" />
 
     <EditText
+        android:id="@+id/numberOfQuestionsPerPageEditText"
+        android:layout_width="wrap_content"
+        android:layout_height="63dp"
+        android:layout_below="@id/pageNumberEditText"
+        android:layout_alignParentStart="true"
+        android:layout_marginStart="14dp"
+        android:layout_marginTop="24dp"
+        android:hint="Number of Questions in current Page"
+        android:inputType="number" />
+
+    <EditText
         android:id="@+id/topicEditText"
-        android:layout_width="177dp"
-        android:layout_height="66dp"
+        android:layout_width="256dp"
+        android:layout_height="63dp"
         android:layout_alignTop="@id/pageNumberEditText"
-        android:layout_marginStart="-157dp"
-        android:layout_marginTop="85dp"
+        android:layout_marginStart="-160dp"
+        android:layout_marginTop="218dp"
         android:layout_toEndOf="@id/pageNumberEditText"
-        android:hint="Topic" />
+        android:hint=" Topic of current question" />
 
     <Button
         android:id="@+id/selectTemplatesButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_below="@id/pageNumberEditText"
-        android:layout_marginTop="206dp"
-        android:text="Select Templates" />
+        android:layout_marginTop="274dp"
+        android:text="Select Template of current question" />
 
     <Button
         android:id="@+id/captureImageButton"
         android:layout_width="157dp"
         android:layout_height="wrap_content"
-        android:layout_alignParentEnd="true"
-        android:layout_marginEnd="-5dp"
+        android:layout_alignParentTop="true"
+        android:layout_marginTop="535dp"
         android:text="Capture Image" />
 
     <Button
         android:id="@+id/countMarksButton"
-        android:layout_width="144dp"
+        android:layout_width="164dp"
         android:layout_height="wrap_content"
-        android:layout_below="@id/captureImageButton"
-        android:layout_marginTop="397dp"
+        android:layout_below="@+id/captureImageButton"
+        android:layout_alignParentStart="true"
+        android:layout_marginStart="26dp"
+        android:layout_marginTop="44dp"
+        android:layout_marginEnd="45dp"
+        android:layout_toStartOf="@+id/resultImageView"
         android:text="Count Marks" />
 
     <ImageView
