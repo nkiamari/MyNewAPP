@@ -30,12 +30,22 @@ import org.opencv.core.Scalar;
 import org.opencv.core.Size;
 import org.opencv.imgproc.Imgproc;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+
+import jxl.Workbook;
+import jxl.write.Label;
+import jxl.write.WritableSheet;
+import jxl.write.WritableWorkbook;
+import jxl.write.WriteException;
+import jxl.write.biff.RowsExceededException;
+
 
 public class SelectTemplateActivity extends Activity {
 
@@ -59,16 +69,17 @@ public class SelectTemplateActivity extends Activity {
     private Button setPageNumberButton;
     private Button setNumberOfQuestionsButton;
     private Button setTopicAndTemplateButton;
-
-
     private Button selectTemplatesButton;
     private Button captureImageButton;
     private Button countMarksButton;
+
+
+
     private EditText numberOfQuestionsPerPageEditText;
     private EditText numberOfPagesEditText;
     private EditText pageNumberEditText;
     private EditText topicEditText;
-    private ImageView resultImageView;
+    private EditText studentNameEditText;
 
     @SuppressLint("MissingInflatedId")
     @Override
@@ -82,6 +93,9 @@ public class SelectTemplateActivity extends Activity {
         numberOfQuestionsPerPageEditText = findViewById(R.id.numberOfQuestionsPerPageEditText);
         pageNumberEditText = findViewById(R.id.pageNumberEditText);
         topicEditText = findViewById(R.id.topicEditText);
+        studentNameEditText = findViewById(R.id.studentNameEditText);
+
+
 
         addPageButton = findViewById(R.id.addPageButton);
         selectTemplatesButton = findViewById(R.id.selectTemplatesButton);
@@ -91,7 +105,7 @@ public class SelectTemplateActivity extends Activity {
         setPageNumberButton = findViewById(R.id.setPageNumberButton);
         setTopicAndTemplateButton = findViewById(R.id.setTopicAndTemplateButton);
 
-        resultImageView = findViewById(R.id.resultImageView);
+
 
         addPageButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -240,6 +254,51 @@ public class SelectTemplateActivity extends Activity {
 
     }
 
+
+
+
+
+
+    private void createExcelFile(String studentName) {
+        try {
+            // Create a Workbook and define the output file
+            File outputFile = new File(getExternalFilesDir(null), studentName + ".xls");
+            WritableWorkbook workbook = Workbook.createWorkbook(outputFile);
+
+            // Create a new sheet
+            WritableSheet sheet = workbook.createSheet("Marks", 0);
+
+            // Add column headers
+            sheet.addCell(new Label(0, 0, "Topic"));
+            sheet.addCell(new Label(1, 0, "Total Marks"));
+
+            // Write topics and total marks to the sheet
+            int row = 1;
+            for (Map.Entry<String, Integer> entry : marksByTopic.entrySet()) {
+                sheet.addCell(new Label(0, row, entry.getKey()));
+                sheet.addCell(new jxl.write.Number(1, row, entry.getValue()));
+                row++;
+            }
+
+            // Write and close the workbook
+            workbook.write();
+            workbook.close();
+
+            Toast.makeText(this, "Excel file created for " + studentName, Toast.LENGTH_SHORT).show();
+
+        } catch (IOException e) {
+            e.printStackTrace();
+            Toast.makeText(this, "Failed to create Excel file: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+        } catch (WriteException e) {
+            e.printStackTrace();
+            Toast.makeText(this, "Failed to create Excel file: WriteException", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+
+
+
+
     private void dispatchTakePictureIntent() {
         Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
         if (takePictureIntent.resolveActivity(getPackageManager()) != null) {
@@ -308,6 +367,7 @@ public class SelectTemplateActivity extends Activity {
             }
         }
         displayMarksByTopic();
+        createExcelFile(studentNameEditText.getText().toString());
     }
 
     private int countMarksSingleTemplate(Bitmap photoBitmap, Bitmap templateBitmap) {
@@ -371,10 +431,10 @@ public class SelectTemplateActivity extends Activity {
 
         Log.d("countMarksSingleTemplate", "Number of thick lines: " + thickLineCount);
 
-        Bitmap resultBitmapWithRectangle = Bitmap.createBitmap(roiMat.cols(), roiMat.rows(), Bitmap.Config.ARGB_8888);
-        Utils.matToBitmap(roiMat, resultBitmapWithRectangle);
-        resultImageView.setImageBitmap(resultBitmapWithRectangle);
-        resultImageView.setVisibility(View.VISIBLE);
+//        Bitmap resultBitmapWithRectangle = Bitmap.createBitmap(roiMat.cols(), roiMat.rows(), Bitmap.Config.ARGB_8888);
+//        Utils.matToBitmap(roiMat, resultBitmapWithRectangle);
+//        resultImageView.setImageBitmap(resultBitmapWithRectangle);
+//        resultImageView.setVisibility(View.VISIBLE);
 
         return thickLineCount;
     }

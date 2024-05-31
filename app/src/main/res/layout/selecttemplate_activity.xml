@@ -9,15 +9,26 @@
 
     <!-- ImageView to display the result -->
 
+
+    <EditText
+        android:id="@+id/studentNameEditText"
+        android:layout_width="228dp"
+        android:layout_height="75dp"
+        android:layout_alignParentEnd="true"
+        android:layout_alignParentBottom="true"
+        android:layout_marginTop="16dp"
+        android:layout_marginEnd="-7dp"
+        android:layout_marginBottom="127dp"
+        android:hint="Name of Student" />
+
     <EditText
         android:id="@+id/numberOfPagesEditText"
         android:layout_width="182dp"
         android:layout_height="63dp"
-        android:layout_alignParentStart="true"
-        android:layout_marginStart="17dp"
         android:layout_marginTop="16dp"
         android:hint="Number of Pages"
         android:inputType="number" />
+
 
     <Button
         android:id="@+id/addPageButton"
@@ -121,21 +132,6 @@
         android:layout_marginStart="26dp"
         android:layout_marginTop="44dp"
         android:layout_marginEnd="45dp"
-        android:layout_toStartOf="@+id/resultImageView"
         android:text="Count Marks" />
-
-    <ImageView
-        android:id="@+id/resultImageView"
-        android:layout_width="183dp"
-        android:layout_height="158dp"
-        android:layout_alignParentEnd="true"
-        android:layout_alignParentBottom="true"
-        android:layout_marginTop="310dp"
-        android:layout_marginEnd="10dp"
-        android:layout_marginBottom="18dp"
-        android:adjustViewBounds="false"
-        android:contentDescription="Result Image"
-        android:scaleType="fitCenter"
-        android:visibility="visible" />
 
 </RelativeLayout>
