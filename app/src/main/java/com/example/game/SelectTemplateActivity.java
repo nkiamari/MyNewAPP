@@ -2,8 +2,6 @@ package com.example.game;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
-import android.app.AlertDialog;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.net.Uri;
@@ -16,70 +14,55 @@ import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.Toast;
 
-import com.example.game.R;
-
 import org.opencv.android.OpenCVLoader;
 import org.opencv.android.Utils;
-import org.opencv.core.Core;
 import org.opencv.core.CvType;
 import org.opencv.core.Mat;
 import org.opencv.core.MatOfPoint;
-import org.opencv.core.Point;
 import org.opencv.core.Rect;
 import org.opencv.core.Scalar;
-import org.opencv.core.Size;
 import org.opencv.imgproc.Imgproc;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
 
 import jxl.Workbook;
 import jxl.write.Label;
 import jxl.write.WritableSheet;
 import jxl.write.WritableWorkbook;
 import jxl.write.WriteException;
-import jxl.write.biff.RowsExceededException;
-
 
 public class SelectTemplateActivity extends Activity {
 
-    private static final int REQUEST_SELECT_TEMPLATE = 1;
-    private static final int REQUEST_IMAGE_CAPTURE = 2;
+    private static final int REQUEST_IMAGE_CAPTURE = 1;
 
     private int numberOfPages;
     private int currentPage = 1;
-    private Map<Integer, List<Map<String, Object>>> templatesMap = new HashMap<>();
     private List<Bitmap> capturedImages = new ArrayList<>();
-
-    private List<Map<String, Object>> templatesList = new ArrayList<>();
+    private Map<String, List<Integer>> topicsWithQuestions = new HashMap<>();
 
     private Map<String, Integer> marksByTopic = new HashMap<>();
 
-    private Bitmap selectedTemplate;
+
     private Bitmap capturedImage;
 
     private Button addPageButton;
-
-    private Button setPageNumberButton;
-    private Button setNumberOfQuestionsButton;
-    private Button setTopicAndTemplateButton;
-    private Button selectTemplatesButton;
     private Button captureImageButton;
     private Button countMarksButton;
+    private Button setTopicAndQuestionButton;
 
-
-
-    private EditText numberOfQuestionsPerPageEditText;
     private EditText numberOfPagesEditText;
-    private EditText pageNumberEditText;
-    private EditText topicEditText;
     private EditText studentNameEditText;
+    private EditText topicNameEditText;
+    private EditText questionNumbersEditText;
+
+    private ImageView resultImageView;
 
     @SuppressLint("MissingInflatedId")
     @Override
@@ -89,146 +72,34 @@ public class SelectTemplateActivity extends Activity {
 
         OpenCVLoader.initDebug();
 
+        resultImageView = findViewById(R.id.resultImageView);
         numberOfPagesEditText = findViewById(R.id.numberOfPagesEditText);
-        numberOfQuestionsPerPageEditText = findViewById(R.id.numberOfQuestionsPerPageEditText);
-        pageNumberEditText = findViewById(R.id.pageNumberEditText);
-        topicEditText = findViewById(R.id.topicEditText);
         studentNameEditText = findViewById(R.id.studentNameEditText);
-
-
+        topicNameEditText = findViewById(R.id.topicNameEditText);
+        questionNumbersEditText = findViewById(R.id.questionNumbersEditText);
 
         addPageButton = findViewById(R.id.addPageButton);
-        selectTemplatesButton = findViewById(R.id.selectTemplatesButton);
         captureImageButton = findViewById(R.id.captureImageButton);
         countMarksButton = findViewById(R.id.countMarksButton);
-        setNumberOfQuestionsButton = findViewById(R.id.setNumberOfQuestionsButton);
-        setPageNumberButton = findViewById(R.id.setPageNumberButton);
-        setTopicAndTemplateButton = findViewById(R.id.setTopicAndTemplateButton);
-
-
+        setTopicAndQuestionButton = findViewById(R.id.setTopicAndQuestionButton); // Corrected button ID here
 
         addPageButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (numberOfPagesEditText.getText().toString().isEmpty()) {
+                String numberOfPagesStr = numberOfPagesEditText.getText().toString().trim();
+                Log.d("DEBUG", "Number of Pages: '" + numberOfPagesStr + "'");
+                if (numberOfPagesStr.isEmpty()) {
                     Toast.makeText(SelectTemplateActivity.this, "Enter the number of pages", Toast.LENGTH_SHORT).show();
                     return;
                 }
 
-                // Get the number of questions for the current page
-                //int numberOfQuestions = Integer.parseInt(numberOfQuestionsPerPageEditText.getText().toString());
-                Toast.makeText(SelectTemplateActivity.this, "Enter page number", Toast.LENGTH_SHORT).show();
-
-                numberOfPages = Integer.parseInt(numberOfPagesEditText.getText().toString());
+                numberOfPages = Integer.parseInt(numberOfPagesStr);
                 currentPage = 1;
-                templatesMap.clear();
                 capturedImages.clear();
-                marksByTopic.clear();
-                //Toast.makeText(SelectTemplateActivity.this, "Number of pages set to " + numberOfPages, Toast.LENGTH_SHORT).show();
+                topicsWithQuestions.clear(); // Clear topics and related questions
+                Toast.makeText(SelectTemplateActivity.this, "Number of pages set to " + numberOfPages, Toast.LENGTH_SHORT).show();
             }
         });
-
-        selectTemplatesButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (pageNumberEditText.getText().toString().isEmpty() || topicEditText.getText().toString().isEmpty() || numberOfQuestionsPerPageEditText.getText().toString().isEmpty()) {
-                    Toast.makeText(SelectTemplateActivity.this, "Enter page number, topic, and number of questions per page", Toast.LENGTH_SHORT).show();
-                    return;
-                }
-
-                // Get page number and topic from the EditText fields
-                final int pageNumber = Integer.parseInt(pageNumberEditText.getText().toString());
-                String topic = topicEditText.getText().toString();
-
-                // Start the intent to select a template image
-                Intent intent = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
-                intent.setType("image/*");
-                startActivityForResult(intent, REQUEST_SELECT_TEMPLATE);
-            }
-        });
-
-
-        setPageNumberButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Toast.makeText(SelectTemplateActivity.this, "Enter number of questions in current page", Toast.LENGTH_SHORT).show();
-            }
-        });
-
-
-        setNumberOfQuestionsButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Toast.makeText(SelectTemplateActivity.this, "Enter topic and select template for current question", Toast.LENGTH_SHORT).show();
-            }
-        });
-
-
-
-
-
-        setTopicAndTemplateButton.setOnClickListener(new View.OnClickListener() {
-            private int remainingQuestions; // Track remaining questions per page
-            private int currentQuestionIndex = 0; // Track the index of the current question
-
-            @Override
-            public void onClick(View v) {
-                // Initialize remainingQuestions if not already initialized
-                if (remainingQuestions == 0) {
-                    remainingQuestions = Integer.parseInt(numberOfQuestionsPerPageEditText.getText().toString());
-                }
-
-                // Check if topic is not entered
-                if (topicEditText.getText().toString().isEmpty()) {
-                    Toast.makeText(SelectTemplateActivity.this, "Topic not entered for current question", Toast.LENGTH_LONG).show();
-                    return; // Ensure no further execution
-                }
-
-                // Check if template is not selected for the current question on the current page
-                int currentPageNumber = Integer.parseInt(pageNumberEditText.getText().toString());
-                List<Map<String, Object>> templatesForCurrentPage = templatesMap.get(currentPageNumber);
-
-                if (templatesForCurrentPage == null || currentQuestionIndex >= templatesForCurrentPage.size() || templatesForCurrentPage.get(currentQuestionIndex).isEmpty()) {
-                    Toast.makeText(SelectTemplateActivity.this, "Template not selected for current question", Toast.LENGTH_LONG).show();
-                    return; // Ensure no further execution
-                }
-
-                // Decrement the number of questions on the current page
-                remainingQuestions--;
-                currentQuestionIndex++; // Move to the next question
-
-                if (remainingQuestions > 0) {
-                    // Show toast for each question until the last one
-                    Toast.makeText(SelectTemplateActivity.this, "Saved successfully! Enter topic and select template for next question.", Toast.LENGTH_SHORT).show();
-                } else if (remainingQuestions == 0) {
-                    // Check if the current page is the last page
-                    if (pageNumberEditText.getText().toString().equals(numberOfPagesEditText.getText().toString())) {
-                        // Show toast to capture all pages of the exam paper
-                        Toast.makeText(SelectTemplateActivity.this, "Capture all pages of exam paper", Toast.LENGTH_SHORT).show();
-                    } else {
-                        // Show toast to enter the next page number when the last question is reached
-                        Toast.makeText(SelectTemplateActivity.this, "Enter next page number", Toast.LENGTH_SHORT).show();
-                    }
-                    // Reset for the next page
-                    remainingQuestions = 0; // Reset remainingQuestions
-                    currentQuestionIndex = 0; // Reset question index
-                    numberOfQuestionsPerPageEditText.setText(""); // Clear the number of questions EditText
-                }
-
-                // Update the number of questions EditText with the decremented value if not zero
-                if (remainingQuestions > 0) {
-                    numberOfQuestionsPerPageEditText.setText(String.valueOf(remainingQuestions));
-                }
-
-                // Clear the topic EditText
-                topicEditText.setText("");
-            }
-        });
-
-
-
-
-
 
         captureImageButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -252,8 +123,45 @@ public class SelectTemplateActivity extends Activity {
             }
         });
 
-    }
+        setTopicAndQuestionButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                String topicName = topicNameEditText.getText().toString().trim();
+                String questionNumbersText = questionNumbersEditText.getText().toString().trim();
 
+                if (topicName.isEmpty()) {
+                    Toast.makeText(SelectTemplateActivity.this, "Enter topic name", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+
+                if (questionNumbersText.isEmpty()) {
+                    Toast.makeText(SelectTemplateActivity.this, "Enter question numbers", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+
+                String[] questionNumbers = questionNumbersText.split(",");
+                List<Integer> questions = new ArrayList<>();
+                for (String number : questionNumbers) {
+                    try {
+                        int questionNumber = Integer.parseInt(number.trim());
+                        questions.add(questionNumber);
+                    } catch (NumberFormatException e) {
+                        Toast.makeText(SelectTemplateActivity.this, "Invalid question number: " + number, Toast.LENGTH_SHORT).show();
+                        return;
+                    }
+                }
+
+                // Add the topic and its related question numbers to the map
+                topicsWithQuestions.put(topicName, questions);
+
+                // Clear input fields after adding the topic
+                topicNameEditText.setText("");
+                questionNumbersEditText.setText("");
+
+                Toast.makeText(SelectTemplateActivity.this, "Topic added: " + topicName, Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
 
 
 
@@ -261,18 +169,14 @@ public class SelectTemplateActivity extends Activity {
 
     private void createExcelFile(String studentName) {
         try {
-            // Create a Workbook and define the output file
             File outputFile = new File(getExternalFilesDir(null), studentName + ".xls");
             WritableWorkbook workbook = Workbook.createWorkbook(outputFile);
 
-            // Create a new sheet
             WritableSheet sheet = workbook.createSheet("Marks", 0);
 
-            // Add column headers
             sheet.addCell(new Label(0, 0, "Topic"));
             sheet.addCell(new Label(1, 0, "Total Marks"));
 
-            // Write topics and total marks to the sheet
             int row = 1;
             for (Map.Entry<String, Integer> entry : marksByTopic.entrySet()) {
                 sheet.addCell(new Label(0, row, entry.getKey()));
@@ -280,24 +184,16 @@ public class SelectTemplateActivity extends Activity {
                 row++;
             }
 
-            // Write and close the workbook
             workbook.write();
             workbook.close();
 
             Toast.makeText(this, "Excel file created for " + studentName, Toast.LENGTH_SHORT).show();
 
-        } catch (IOException e) {
+        } catch (IOException | WriteException e) {
             e.printStackTrace();
             Toast.makeText(this, "Failed to create Excel file: " + e.getMessage(), Toast.LENGTH_SHORT).show();
-        } catch (WriteException e) {
-            e.printStackTrace();
-            Toast.makeText(this, "Failed to create Excel file: WriteException", Toast.LENGTH_SHORT).show();
         }
     }
-
-
-
-
 
     private void dispatchTakePictureIntent() {
         Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
@@ -321,26 +217,7 @@ public class SelectTemplateActivity extends Activity {
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
 
-        if (requestCode == REQUEST_SELECT_TEMPLATE && resultCode == RESULT_OK && data != null) {
-            Uri uri = data.getData();
-            selectedTemplate = getBitmapFromUri(uri);
-            if (selectedTemplate != null) {
-                String topic = topicEditText.getText().toString();
-                int pageNumber = Integer.parseInt(pageNumberEditText.getText().toString());
-                Map<String, Object> templateData = new HashMap<>();
-                templateData.put("template", selectedTemplate);
-                templateData.put("topic", topic);
-                templateData.put("page", pageNumber);
-
-                if (!templatesMap.containsKey(pageNumber)) {
-                    templatesMap.put(pageNumber, new ArrayList<>());
-                }
-                templatesMap.get(pageNumber).add(templateData);
-
-            } else {
-                Toast.makeText(this, "Failed to load template image", Toast.LENGTH_SHORT).show();
-            }
-        } else if (requestCode == REQUEST_IMAGE_CAPTURE && resultCode == RESULT_OK && data != null) {
+        if (requestCode == REQUEST_IMAGE_CAPTURE && resultCode == RESULT_OK && data != null) {
             Bundle extras = data.getExtras();
             if (extras != null && extras.containsKey("data")) {
                 capturedImage = (Bitmap) extras.get("data");
@@ -354,96 +231,187 @@ public class SelectTemplateActivity extends Activity {
     }
 
     private void countMarksForAllPages() {
+        Map<String, Integer> topicMarks = new HashMap<>();
+        for (String topic : topicsWithQuestions.keySet()) {
+            topicMarks.put(topic, 0);
+        }
+
+        int questionIndex = 0; // Index for tracking the current question
+        int pageCounter = 0; // Counter for tracking the current page
+        int currentPageMarks = 0; // Marks counted in the current page
+
         for (int pageNumber = 1; pageNumber <= numberOfPages; pageNumber++) {
             Bitmap capturedPage = capturedImages.get(pageNumber - 1);
-            List<Map<String, Object>> templatesForPage = templatesMap.get(pageNumber);
-            if (templatesForPage != null) {
-                for (Map<String, Object> templateData : templatesForPage) {
-                    Bitmap template = (Bitmap) templateData.get("template");
-                    String topic = (String) templateData.get("topic");
-                    int marks = countMarksSingleTemplate(capturedPage, template);
-                    marksByTopic.put(topic, marksByTopic.getOrDefault(topic, 0) + marks);
+            Map<Integer, Integer> pageMarks = countMarksInPage(capturedPage);
+
+            for (Map.Entry<String, List<Integer>> entry : topicsWithQuestions.entrySet()) {
+                String topic = entry.getKey();
+                List<Integer> questionNumbers = entry.getValue();
+
+                for (Integer questionNumber : questionNumbers) {
+                    // Skip questions until reaching the current question index
+                    if (questionIndex > 0) {
+                        questionIndex--;
+                        continue;
+                    }
+
+                    // If marks for the current page's questions have been counted, move to the next page
+                    if (pageCounter > 0) {
+                        pageCounter--;
+                        continue;
+                    }
+
+                    if (pageMarks.containsKey(questionNumber)) {
+                        int marks = pageMarks.get(questionNumber);
+                        topicMarks.put(topic, topicMarks.get(topic) + marks);
+                        currentPageMarks += marks;
+                        questionIndex++; // Move to the next question
+                    }
+
+                    // If marks for all questions in the current page are counted, move to the next page
+                    if (questionIndex >= questionNumbers.size()) {
+                        pageCounter = 1; // Set the counter for the next page
+                        break; // Move to the next page
+                    }
                 }
             }
+
+            // If marks for the current page's questions have been counted, reset the counter
+            if (currentPageMarks > 0) {
+                currentPageMarks = 0;
+            } else {
+                // If no marks counted in the current page, no questions found, move to the next page
+                pageCounter = 1;
+            }
         }
+
+        marksByTopic = topicMarks;
         displayMarksByTopic();
         createExcelFile(studentNameEditText.getText().toString());
     }
 
-    private int countMarksSingleTemplate(Bitmap photoBitmap, Bitmap templateBitmap) {
-        if (photoBitmap == null || templateBitmap == null) {
-            Log.e("countMarksSingleTemplate", "Null bitmap detected");
-            return 0;
+
+    private Map<Integer, Integer> countMarksInPage(Bitmap capturedPage) {
+        Map<Integer, Integer> marksByQuestion = new HashMap<>();
+
+        if (capturedPage == null) {
+            Log.e("countMarksInPage", "Null bitmap detected");
+            return marksByQuestion;
         }
 
         Mat imageMat = new Mat();
-        Mat templateMat = new Mat();
-        Utils.bitmapToMat(photoBitmap, imageMat);
-        Utils.bitmapToMat(templateBitmap, templateMat);
+        Utils.bitmapToMat(capturedPage, imageMat);
 
-        float captureRatio = (float) templateBitmap.getWidth() / photoBitmap.getWidth();
-
-        int newWidth = imageMat.cols();
-        int newHeight = (int) (templateBitmap.getHeight() / captureRatio);
-        Mat resizedTemplateMat = new Mat();
-        Imgproc.resize(templateMat, resizedTemplateMat, new Size(newWidth, newHeight));
-
-        Mat result = new Mat();
-        Imgproc.matchTemplate(imageMat, resizedTemplateMat, result, Imgproc.TM_CCOEFF_NORMED);
-
-        Core.normalize(result, result, 0, 1, Core.NORM_MINMAX, -1, new Mat());
-
-        Core.MinMaxLocResult mmr = Core.minMaxLoc(result);
-        Point matchLoc = mmr.maxLoc;
-
-        int templateWidth = resizedTemplateMat.cols();
-        int templateHeight = resizedTemplateMat.rows();
-        Rect roi = new Rect((int) matchLoc.x, (int) matchLoc.y, templateWidth, templateHeight);
-        Mat roiMat = new Mat(imageMat, roi);
-
-        Mat binaryRoiMat = new Mat(roiMat.size(), CvType.CV_8UC1);
-        for (int y = 0; y < roiMat.rows(); y++) {
-            for (int x = 0; x < roiMat.cols(); x++) {
-                double[] pixel = roiMat.get(y, x);
+        // Create a binary mask based on color differences
+        Mat binaryMat = new Mat(imageMat.size(), CvType.CV_8UC1);
+        for (int y = 0; y < imageMat.rows(); y++) {
+            for (int x = 0; x < imageMat.cols(); x++) {
+                double[] pixel = imageMat.get(y, x);
                 double blue = pixel[0], green = pixel[1], red = pixel[2];
-                if (Math.abs(red - green) > 40 || Math.abs(red - blue) > 40 || Math.abs(green - blue) > 40) {
-                    binaryRoiMat.put(y, x, 255);
+                if (Math.abs(red - green) > 50 || Math.abs(red - blue) > 50 || Math.abs(green - blue) > 50) {
+                    binaryMat.put(y, x, 255);
                 } else {
-                    binaryRoiMat.put(y, x, 0);
+                    binaryMat.put(y, x, 0);
                 }
             }
         }
 
+        // Find contours
         List<MatOfPoint> contours = new ArrayList<>();
         Mat hierarchy = new Mat();
-        Imgproc.findContours(binaryRoiMat, contours, hierarchy, Imgproc.RETR_EXTERNAL, Imgproc.CHAIN_APPROX_SIMPLE);
+        Imgproc.findContours(binaryMat, contours, hierarchy, Imgproc.RETR_EXTERNAL, Imgproc.CHAIN_APPROX_SIMPLE);
 
-        int thickLineCount = 0;
+        // Create an image for drawing bounding boxes
+        Mat resultMat = new Mat(imageMat.size(), CvType.CV_8UC3, new Scalar(255, 255, 255)); // Create a white image
+
+        // Filter contours based on aspect ratio and area, then draw bounding boxes
+        List<Rect> boundingBoxes = new ArrayList<>();
         for (MatOfPoint contour : contours) {
             Rect boundingBox = Imgproc.boundingRect(contour);
             double aspectRatio = (double) boundingBox.width / boundingBox.height;
             double area = Imgproc.contourArea(contour);
             if (aspectRatio < 0.8 && area > 15) {
-                thickLineCount++;
-                Imgproc.drawContours(roiMat, Collections.singletonList(contour), -1, new Scalar(255, 0, 0), 2);
+                boundingBoxes.add(boundingBox);
+                Imgproc.rectangle(resultMat, boundingBox.tl(), boundingBox.br(), new Scalar(0, 0, 0), 2); // Draw black rectangle
             }
         }
 
-        Log.d("countMarksSingleTemplate", "Number of thick lines: " + thickLineCount);
+        // Convert the resultMat to bitmap
+        Bitmap resultBitmapWithRectangle = Bitmap.createBitmap(resultMat.cols(), resultMat.rows(), Bitmap.Config.ARGB_8888);
+        Utils.matToBitmap(resultMat, resultBitmapWithRectangle);
 
-//        Bitmap resultBitmapWithRectangle = Bitmap.createBitmap(roiMat.cols(), roiMat.rows(), Bitmap.Config.ARGB_8888);
-//        Utils.matToBitmap(roiMat, resultBitmapWithRectangle);
-//        resultImageView.setImageBitmap(resultBitmapWithRectangle);
-//        resultImageView.setVisibility(View.VISIBLE);
+        // Display the bitmap with rectangles
+        resultImageView.setImageBitmap(resultBitmapWithRectangle);
+        resultImageView.setVisibility(View.VISIBLE);
 
-        return thickLineCount;
+        // Group bounding boxes that are close to each other
+        List<Rect> groupedBoundingBoxes = new ArrayList<>();
+        boolean[] visited = new boolean[boundingBoxes.size()];
+
+        for (int i = 0; i < boundingBoxes.size(); i++) {
+            if (visited[i]) continue;
+
+            Rect boxA = boundingBoxes.get(i);
+            Rect combinedBox = new Rect(boxA.tl(), boxA.br()); // Initialize with the same coordinates
+            visited[i] = true;
+
+            for (int j = 0; j < boundingBoxes.size(); j++) {
+                if (i == j || visited[j]) continue;
+
+                Rect boxB = boundingBoxes.get(j);
+                int distance = (int) Math.sqrt(Math.pow((boxA.x + boxA.width / 2) - (boxB.x + boxB.width / 2), 2) +
+                        Math.pow((boxA.y + boxA.height / 2) - (boxB.y + boxB.height / 2), 2));
+
+                if (distance < 10) {
+                    combinedBox = union(combinedBox, boxB);
+                    visited[j] = true;
+                }
+            }
+            groupedBoundingBoxes.add(combinedBox);
+        }
+
+        // Sort grouped bounding boxes by their y-coordinate
+        Collections.sort(groupedBoundingBoxes, new Comparator<Rect>() {
+            @Override
+            public int compare(Rect r1, Rect r2) {
+                return Integer.compare(r1.y, r2.y);
+            }
+        });
+
+        // Count thick lines inside each new bounding box and assign to questions
+        for (Rect boundingBox : groupedBoundingBoxes) {
+            int count = 0;
+            for (Rect box : boundingBoxes) {
+                if (boundingBox.contains(box.tl()) && boundingBox.contains(box.br())) {
+                    count++;
+                }
+            }
+
+            // Assuming question numbers are represented by the y-coordinate of the bounding box
+            marksByQuestion.put(boundingBox.y, count);
+        }
+
+        return marksByQuestion;
+    }
+
+    // Utility function to find the union of two rectangles
+    private static Rect union(Rect r1, Rect r2) {
+        int x = Math.min(r1.x, r2.x);
+        int y = Math.min(r1.y, r2.y);
+        int width = Math.max(r1.x + r1.width, r2.x + r2.width) - x;
+        int height = Math.max(r1.y + r1.height, r2.y + r2.height) - y;
+        return new Rect(x, y, width, height);
     }
 
     private void displayMarksByTopic() {
-        StringBuilder marksDisplay = new StringBuilder();
+        StringBuilder marksSummary = new StringBuilder();
         for (Map.Entry<String, Integer> entry : marksByTopic.entrySet()) {
-            marksDisplay.append(entry.getKey()).append(": ").append(entry.getValue()).append("\n");
+            marksSummary.append(entry.getKey()).append(": ").append(entry.getValue()).append("\n");
         }
-        Toast.makeText(this, marksDisplay.toString(), Toast.LENGTH_LONG).show();
+        Toast.makeText(this, marksSummary.toString(), Toast.LENGTH_LONG).show();
     }
+
+
+
 }
+

@@ -3,7 +3,7 @@
     <item name="proceedButton2" type="id" />
     <item name="capturePhotoButton" type="id" />
     <item name="topicContainer" type="id" />
-    <item name="addTopicButton" type="id" />
+    <item name="countMarksButton" type="id" />
     <item name="numPagesEditText" type="id" />
     <item name="numQuestionsEditText" type="id" />
     <item name="questionsEditText" type="id" />
