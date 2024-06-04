@@ -234,6 +234,14 @@ public class SelectTemplateActivity extends Activity {
 
     private void countMarksForAllPages() {
         Map<String, Integer> marksByTopic = new HashMap<>();
+        // Find contours
+        List<MatOfPoint> contours = new ArrayList<>();
+        List<Rect> boundingBoxes = new ArrayList<>();
+
+
+// Initialize the count and index
+        int index = 0;
+        int count;
 
         // Initialize marks for all topics to 0
         for (String topic : topics) {
@@ -245,6 +253,8 @@ public class SelectTemplateActivity extends Activity {
                 Log.e("countMarksInPage", "Null bitmap detected");
                 continue;
             }
+            boundingBoxes.clear();
+            contours.clear();
 
             Mat imageMat = new Mat();
             Utils.bitmapToMat(image, imageMat);
@@ -263,8 +273,7 @@ public class SelectTemplateActivity extends Activity {
                 }
             }
 
-            // Find contours
-            List<MatOfPoint> contours = new ArrayList<>();
+
             Mat hierarchy = new Mat();
             Imgproc.findContours(binaryMat, contours, hierarchy, Imgproc.RETR_EXTERNAL, Imgproc.CHAIN_APPROX_SIMPLE);
 
@@ -272,59 +281,18 @@ public class SelectTemplateActivity extends Activity {
             Mat resultMat = new Mat(imageMat.size(), CvType.CV_8UC3, new Scalar(255, 255, 255)); // Create a white image
 
             // Filter contours based on aspect ratio and area, then draw bounding boxes
-            List<Rect> boundingBoxes = new ArrayList<>();
+
             for (MatOfPoint contour : contours) {
                 Rect boundingBox = Imgproc.boundingRect(contour);
                 double aspectRatio = (double) boundingBox.width / boundingBox.height;
                 double area = Imgproc.contourArea(contour);
-                if (aspectRatio < 0.8 && area > 15) {
+                if (aspectRatio < 1.2 && area > 8) {
                     boundingBoxes.add(boundingBox);
                     Imgproc.rectangle(resultMat, boundingBox.tl(), boundingBox.br(), new Scalar(0, 0, 0), 2); // Draw black rectangle
                 }
             }
 
-            // Group bounding boxes that are close to each other and keep the number of bounding boxes in each group
-            class BoundingBoxGroup {
-                List<Rect> boundingBoxes;
-                int count;
 
-                BoundingBoxGroup(List<Rect> boundingBoxes) {
-                    this.boundingBoxes = boundingBoxes;
-                    this.count = boundingBoxes.size();
-                }
-                int getCount() {
-                    return count;
-                }
-            }
-
-            List<BoundingBoxGroup> groupedBoundingBoxes = new ArrayList<>();
-            boolean[] visited = new boolean[boundingBoxes.size()];
-
-            for (int i = 0; i < boundingBoxes.size(); i++) {
-                if (visited[i]) continue;
-
-                List<Rect> group = new ArrayList<>();
-                group.add(boundingBoxes.get(i));
-                visited[i] = true;
-
-                for (int j = 0; j < boundingBoxes.size(); j++) {
-                    if (i == j || visited[j]) continue;
-
-                    if (Math.abs(boundingBoxes.get(i).x - boundingBoxes.get(j).x) < 10) {
-                        group.add(boundingBoxes.get(j));
-                        visited[j] = true;
-                    }
-                }
-
-                groupedBoundingBoxes.add(new BoundingBoxGroup(group));
-            }
-
-            // Draw grouped bounding boxes
-            for (BoundingBoxGroup group : groupedBoundingBoxes) {
-                for (Rect boundingBox : group.boundingBoxes) {
-                    Imgproc.rectangle(resultMat, boundingBox.tl(), boundingBox.br(), new Scalar(255, 0, 0), 2); // Draw red rectangle
-                }
-            }
 
             // Convert the resultMat to bitmap
             Bitmap resultBitmapWithRectangle = Bitmap.createBitmap(resultMat.cols(), resultMat.rows(), Bitmap.Config.ARGB_8888);
@@ -334,41 +302,38 @@ public class SelectTemplateActivity extends Activity {
             resultImageView.setImageBitmap(resultBitmapWithRectangle);
             resultImageView.setVisibility(View.VISIBLE);
 
+
+
+
             // Sort bounding boxes based on their y-coordinate from smallest to biggest
             boundingBoxes.sort(Comparator.comparingInt(r -> r.y));
 
-            // Initialize the count and index
-            int index = 0;
-            int count;
 
-            // Loop through pages and process bounding boxes
-            for (int page = 1; page <= numberOfPages; page++) {
-                for (int i = 0; i < boundingBoxes.size(); i += count) {
-                    count = 0;
 
-                    // Count bounding boxes with y-coordinate difference less than 10 from the current bounding box
-                    for (int j = i; j < boundingBoxes.size(); j++) {
-                        if (Math.abs(boundingBoxes.get(i).y - boundingBoxes.get(j).y) < 10) {
-                            count++;
-                        } else {
-                            break;
-                        }
+            for (int i = 0; i < boundingBoxes.size(); i += count) {
+                count = 0;
+
+                // Count bounding boxes with y-coordinate difference less than 10 from the current bounding box
+                for (int j = i; j < boundingBoxes.size(); j++) {
+                    if (Math.abs(boundingBoxes.get(i).y - boundingBoxes.get(j).y) < 10) {
+                        count++;
+                    } else {
+                        break;
                     }
+                }
 
-                    // Update marks for the current topic
-                    if (index < topics.size()) {
-                        String topic = topics.get(index);
-                        marksByTopic.put(topic, marksByTopic.get(topic) + count );
-                        index++;
-                    }
+                // Update marks for the current topic
+                if (index < topics.size()) {
+                    String topic = topics.get(index);
+                    marksByTopic.put(topic, marksByTopic.get(topic) + count );
+                    Log.d("MarksByTopic", "mark: " + marksByTopic.get(topic));
+                    Log.d("MarksByTopic", "size: " + topics.size());
+                    Log.d("MarksByTopic", "boundingsize: " +  boundingBoxes.size());
+                    index++;
                 }
             }
         }
 
-        // Log the marks by topic
-        for (Map.Entry<String, Integer> entry : marksByTopic.entrySet()) {
-            Log.d("MarksByTopic", "Topic: " + entry.getKey() + ", Marks: " + entry.getValue());
-        }
 
         String studentName = studentNameEditText.getText().toString().trim();
         if (!studentName.isEmpty()) {
