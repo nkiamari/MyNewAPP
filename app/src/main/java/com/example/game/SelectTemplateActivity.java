@@ -45,26 +45,23 @@ public class SelectTemplateActivity extends Activity {
     private int numberOfPages;
     private int currentPage = 1;
     private List<Bitmap> capturedImages = new ArrayList<>();
-    private Map<String, List<Integer>> topicsWithQuestions = new HashMap<>();
-
-    private Map<String, Integer> marksByTopic = new HashMap<>();
-
+    private List<String> topics = new ArrayList<>();
 
     private Bitmap capturedImage;
 
     private Button addPageButton;
     private Button captureImageButton;
     private Button countMarksButton;
-    private Button setTopicAndQuestionButton;
+    private Button finalizeButton;
+    Button nextTopicButton;
 
     private EditText numberOfPagesEditText;
     private EditText studentNameEditText;
     private EditText topicNameEditText;
-    private EditText questionNumbersEditText;
 
     private ImageView resultImageView;
 
-    @SuppressLint("MissingInflatedId")
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -76,12 +73,15 @@ public class SelectTemplateActivity extends Activity {
         numberOfPagesEditText = findViewById(R.id.numberOfPagesEditText);
         studentNameEditText = findViewById(R.id.studentNameEditText);
         topicNameEditText = findViewById(R.id.topicNameEditText);
-        questionNumbersEditText = findViewById(R.id.questionNumbersEditText);
 
+
+        nextTopicButton = findViewById(R.id.nextTopicButton);
         addPageButton = findViewById(R.id.addPageButton);
         captureImageButton = findViewById(R.id.captureImageButton);
         countMarksButton = findViewById(R.id.countMarksButton);
-        setTopicAndQuestionButton = findViewById(R.id.setTopicAndQuestionButton); // Corrected button ID here
+        finalizeButton = findViewById(R.id.finalizeButton);
+
+
 
         addPageButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -96,10 +96,41 @@ public class SelectTemplateActivity extends Activity {
                 numberOfPages = Integer.parseInt(numberOfPagesStr);
                 currentPage = 1;
                 capturedImages.clear();
-                topicsWithQuestions.clear(); // Clear topics and related questions
+                topics.clear();
                 Toast.makeText(SelectTemplateActivity.this, "Number of pages set to " + numberOfPages, Toast.LENGTH_SHORT).show();
             }
         });
+
+
+        nextTopicButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                String topicName = topicNameEditText.getText().toString().trim();
+                if (topicName.isEmpty()) {
+                    Toast.makeText(SelectTemplateActivity.this, "Enter topic name", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+
+                // Add the topic to the list
+                topics.add(topicName);
+                topicNameEditText.setText("");
+                Toast.makeText(SelectTemplateActivity.this, "Topic added: " + topicName, Toast.LENGTH_SHORT).show();
+            }
+        });
+
+
+        finalizeButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                String topicName = topicNameEditText.getText().toString().trim();
+                // Add the topic to the list
+                topics.add(topicName);
+                topicNameEditText.setText("");
+
+                Toast.makeText(SelectTemplateActivity.this, "List of topics finalized, Capture all pages of exam paper", Toast.LENGTH_SHORT).show();
+            }
+        });
+
 
         captureImageButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -112,6 +143,10 @@ public class SelectTemplateActivity extends Activity {
             }
         });
 
+
+
+
+
         countMarksButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -122,52 +157,14 @@ public class SelectTemplateActivity extends Activity {
                 countMarksForAllPages();
             }
         });
-
-        setTopicAndQuestionButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                String topicName = topicNameEditText.getText().toString().trim();
-                String questionNumbersText = questionNumbersEditText.getText().toString().trim();
-
-                if (topicName.isEmpty()) {
-                    Toast.makeText(SelectTemplateActivity.this, "Enter topic name", Toast.LENGTH_SHORT).show();
-                    return;
-                }
-
-                if (questionNumbersText.isEmpty()) {
-                    Toast.makeText(SelectTemplateActivity.this, "Enter question numbers", Toast.LENGTH_SHORT).show();
-                    return;
-                }
-
-                String[] questionNumbers = questionNumbersText.split(",");
-                List<Integer> questions = new ArrayList<>();
-                for (String number : questionNumbers) {
-                    try {
-                        int questionNumber = Integer.parseInt(number.trim());
-                        questions.add(questionNumber);
-                    } catch (NumberFormatException e) {
-                        Toast.makeText(SelectTemplateActivity.this, "Invalid question number: " + number, Toast.LENGTH_SHORT).show();
-                        return;
-                    }
-                }
-
-                // Add the topic and its related question numbers to the map
-                topicsWithQuestions.put(topicName, questions);
-
-                // Clear input fields after adding the topic
-                topicNameEditText.setText("");
-                questionNumbersEditText.setText("");
-
-                Toast.makeText(SelectTemplateActivity.this, "Topic added: " + topicName, Toast.LENGTH_SHORT).show();
-            }
-        });
     }
 
 
 
 
 
-    private void createExcelFile(String studentName) {
+
+    private void createExcelFile(String studentName, Map<String, Integer> totalMarksByTopic) {
         try {
             File outputFile = new File(getExternalFilesDir(null), studentName + ".xls");
             WritableWorkbook workbook = Workbook.createWorkbook(outputFile);
@@ -175,12 +172,14 @@ public class SelectTemplateActivity extends Activity {
             WritableSheet sheet = workbook.createSheet("Marks", 0);
 
             sheet.addCell(new Label(0, 0, "Topic"));
-            sheet.addCell(new Label(1, 0, "Total Marks"));
+            sheet.addCell(new Label(1, 0, "Marks"));
 
             int row = 1;
-            for (Map.Entry<String, Integer> entry : marksByTopic.entrySet()) {
-                sheet.addCell(new Label(0, row, entry.getKey()));
-                sheet.addCell(new jxl.write.Number(1, row, entry.getValue()));
+            for (Map.Entry<String, Integer> entry : totalMarksByTopic.entrySet()) {
+                String topic = entry.getKey();
+                int marks = entry.getValue();
+                sheet.addCell(new Label(0, row, topic));
+                sheet.addCell(new jxl.write.Number(1, row, marks));
                 row++;
             }
 
@@ -194,6 +193,9 @@ public class SelectTemplateActivity extends Activity {
             Toast.makeText(this, "Failed to create Excel file: " + e.getMessage(), Toast.LENGTH_SHORT).show();
         }
     }
+
+
+
 
     private void dispatchTakePictureIntent() {
         Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
@@ -231,168 +233,151 @@ public class SelectTemplateActivity extends Activity {
     }
 
     private void countMarksForAllPages() {
-        Map<String, Integer> topicMarks = new HashMap<>();
-        for (String topic : topicsWithQuestions.keySet()) {
-            topicMarks.put(topic, 0);
+        Map<String, Integer> marksByTopic = new HashMap<>();
+
+        // Initialize marks for all topics to 0
+        for (String topic : topics) {
+            marksByTopic.put(topic, 0);
         }
 
-        int questionIndex = 0; // Index for tracking the current question
-        int pageCounter = 0; // Counter for tracking the current page
-        int currentPageMarks = 0; // Marks counted in the current page
+        for (Bitmap image : capturedImages) {
+            if (image == null) {
+                Log.e("countMarksInPage", "Null bitmap detected");
+                continue;
+            }
 
-        for (int pageNumber = 1; pageNumber <= numberOfPages; pageNumber++) {
-            Bitmap capturedPage = capturedImages.get(pageNumber - 1);
-            Map<Integer, Integer> pageMarks = countMarksInPage(capturedPage);
+            Mat imageMat = new Mat();
+            Utils.bitmapToMat(image, imageMat);
 
-            for (Map.Entry<String, List<Integer>> entry : topicsWithQuestions.entrySet()) {
-                String topic = entry.getKey();
-                List<Integer> questionNumbers = entry.getValue();
-
-                for (Integer questionNumber : questionNumbers) {
-                    // Skip questions until reaching the current question index
-                    if (questionIndex > 0) {
-                        questionIndex--;
-                        continue;
-                    }
-
-                    // If marks for the current page's questions have been counted, move to the next page
-                    if (pageCounter > 0) {
-                        pageCounter--;
-                        continue;
-                    }
-
-                    if (pageMarks.containsKey(questionNumber)) {
-                        int marks = pageMarks.get(questionNumber);
-                        topicMarks.put(topic, topicMarks.get(topic) + marks);
-                        currentPageMarks += marks;
-                        questionIndex++; // Move to the next question
-                    }
-
-                    // If marks for all questions in the current page are counted, move to the next page
-                    if (questionIndex >= questionNumbers.size()) {
-                        pageCounter = 1; // Set the counter for the next page
-                        break; // Move to the next page
+            // Create a binary mask based on color differences
+            Mat binaryMat = new Mat(imageMat.size(), CvType.CV_8UC1);
+            for (int y = 0; y < imageMat.rows(); y++) {
+                for (int x = 0; x < imageMat.cols(); x++) {
+                    double[] pixel = imageMat.get(y, x);
+                    double blue = pixel[0], green = pixel[1], red = pixel[2];
+                    if (Math.abs(red - green) > 50 || Math.abs(red - blue) > 50 || Math.abs(green - blue) > 50) {
+                        binaryMat.put(y, x, 255);
+                    } else {
+                        binaryMat.put(y, x, 0);
                     }
                 }
             }
 
-            // If marks for the current page's questions have been counted, reset the counter
-            if (currentPageMarks > 0) {
-                currentPageMarks = 0;
-            } else {
-                // If no marks counted in the current page, no questions found, move to the next page
-                pageCounter = 1;
+            // Find contours
+            List<MatOfPoint> contours = new ArrayList<>();
+            Mat hierarchy = new Mat();
+            Imgproc.findContours(binaryMat, contours, hierarchy, Imgproc.RETR_EXTERNAL, Imgproc.CHAIN_APPROX_SIMPLE);
+
+            // Create an image for drawing bounding boxes
+            Mat resultMat = new Mat(imageMat.size(), CvType.CV_8UC3, new Scalar(255, 255, 255)); // Create a white image
+
+            // Filter contours based on aspect ratio and area, then draw bounding boxes
+            List<Rect> boundingBoxes = new ArrayList<>();
+            for (MatOfPoint contour : contours) {
+                Rect boundingBox = Imgproc.boundingRect(contour);
+                double aspectRatio = (double) boundingBox.width / boundingBox.height;
+                double area = Imgproc.contourArea(contour);
+                if (aspectRatio < 0.8 && area > 15) {
+                    boundingBoxes.add(boundingBox);
+                    Imgproc.rectangle(resultMat, boundingBox.tl(), boundingBox.br(), new Scalar(0, 0, 0), 2); // Draw black rectangle
+                }
+            }
+
+            // Group bounding boxes that are close to each other and keep the number of bounding boxes in each group
+            class BoundingBoxGroup {
+                List<Rect> boundingBoxes;
+                int count;
+
+                BoundingBoxGroup(List<Rect> boundingBoxes) {
+                    this.boundingBoxes = boundingBoxes;
+                    this.count = boundingBoxes.size();
+                }
+                int getCount() {
+                    return count;
+                }
+            }
+
+            List<BoundingBoxGroup> groupedBoundingBoxes = new ArrayList<>();
+            boolean[] visited = new boolean[boundingBoxes.size()];
+
+            for (int i = 0; i < boundingBoxes.size(); i++) {
+                if (visited[i]) continue;
+
+                List<Rect> group = new ArrayList<>();
+                group.add(boundingBoxes.get(i));
+                visited[i] = true;
+
+                for (int j = 0; j < boundingBoxes.size(); j++) {
+                    if (i == j || visited[j]) continue;
+
+                    if (Math.abs(boundingBoxes.get(i).x - boundingBoxes.get(j).x) < 10) {
+                        group.add(boundingBoxes.get(j));
+                        visited[j] = true;
+                    }
+                }
+
+                groupedBoundingBoxes.add(new BoundingBoxGroup(group));
+            }
+
+            // Draw grouped bounding boxes
+            for (BoundingBoxGroup group : groupedBoundingBoxes) {
+                for (Rect boundingBox : group.boundingBoxes) {
+                    Imgproc.rectangle(resultMat, boundingBox.tl(), boundingBox.br(), new Scalar(255, 0, 0), 2); // Draw red rectangle
+                }
+            }
+
+            // Convert the resultMat to bitmap
+            Bitmap resultBitmapWithRectangle = Bitmap.createBitmap(resultMat.cols(), resultMat.rows(), Bitmap.Config.ARGB_8888);
+            Utils.matToBitmap(resultMat, resultBitmapWithRectangle);
+
+            // Display the bitmap with rectangles
+            resultImageView.setImageBitmap(resultBitmapWithRectangle);
+            resultImageView.setVisibility(View.VISIBLE);
+
+            // Sort bounding boxes based on their y-coordinate from smallest to biggest
+            boundingBoxes.sort(Comparator.comparingInt(r -> r.y));
+
+            // Initialize the count and index
+            int index = 0;
+            int count;
+
+            // Loop through pages and process bounding boxes
+            for (int page = 1; page <= numberOfPages; page++) {
+                for (int i = 0; i < boundingBoxes.size(); i += count) {
+                    count = 0;
+
+                    // Count bounding boxes with y-coordinate difference less than 10 from the current bounding box
+                    for (int j = i; j < boundingBoxes.size(); j++) {
+                        if (Math.abs(boundingBoxes.get(i).y - boundingBoxes.get(j).y) < 10) {
+                            count++;
+                        } else {
+                            break;
+                        }
+                    }
+
+                    // Update marks for the current topic
+                    if (index < topics.size()) {
+                        String topic = topics.get(index);
+                        marksByTopic.put(topic, marksByTopic.get(topic) + count );
+                        index++;
+                    }
+                }
             }
         }
 
-        marksByTopic = topicMarks;
-        displayMarksByTopic();
-        createExcelFile(studentNameEditText.getText().toString());
+        // Log the marks by topic
+        for (Map.Entry<String, Integer> entry : marksByTopic.entrySet()) {
+            Log.d("MarksByTopic", "Topic: " + entry.getKey() + ", Marks: " + entry.getValue());
+        }
+
+        String studentName = studentNameEditText.getText().toString().trim();
+        if (!studentName.isEmpty()) {
+            createExcelFile(studentName, marksByTopic);
+        } else {
+            Toast.makeText(this, "Enter student name to create Excel file", Toast.LENGTH_SHORT).show();
+        }
     }
 
-
-    private Map<Integer, Integer> countMarksInPage(Bitmap capturedPage) {
-        Map<Integer, Integer> marksByQuestion = new HashMap<>();
-
-        if (capturedPage == null) {
-            Log.e("countMarksInPage", "Null bitmap detected");
-            return marksByQuestion;
-        }
-
-        Mat imageMat = new Mat();
-        Utils.bitmapToMat(capturedPage, imageMat);
-
-        // Create a binary mask based on color differences
-        Mat binaryMat = new Mat(imageMat.size(), CvType.CV_8UC1);
-        for (int y = 0; y < imageMat.rows(); y++) {
-            for (int x = 0; x < imageMat.cols(); x++) {
-                double[] pixel = imageMat.get(y, x);
-                double blue = pixel[0], green = pixel[1], red = pixel[2];
-                if (Math.abs(red - green) > 50 || Math.abs(red - blue) > 50 || Math.abs(green - blue) > 50) {
-                    binaryMat.put(y, x, 255);
-                } else {
-                    binaryMat.put(y, x, 0);
-                }
-            }
-        }
-
-        // Find contours
-        List<MatOfPoint> contours = new ArrayList<>();
-        Mat hierarchy = new Mat();
-        Imgproc.findContours(binaryMat, contours, hierarchy, Imgproc.RETR_EXTERNAL, Imgproc.CHAIN_APPROX_SIMPLE);
-
-        // Create an image for drawing bounding boxes
-        Mat resultMat = new Mat(imageMat.size(), CvType.CV_8UC3, new Scalar(255, 255, 255)); // Create a white image
-
-        // Filter contours based on aspect ratio and area, then draw bounding boxes
-        List<Rect> boundingBoxes = new ArrayList<>();
-        for (MatOfPoint contour : contours) {
-            Rect boundingBox = Imgproc.boundingRect(contour);
-            double aspectRatio = (double) boundingBox.width / boundingBox.height;
-            double area = Imgproc.contourArea(contour);
-            if (aspectRatio < 0.8 && area > 15) {
-                boundingBoxes.add(boundingBox);
-                Imgproc.rectangle(resultMat, boundingBox.tl(), boundingBox.br(), new Scalar(0, 0, 0), 2); // Draw black rectangle
-            }
-        }
-
-        // Convert the resultMat to bitmap
-        Bitmap resultBitmapWithRectangle = Bitmap.createBitmap(resultMat.cols(), resultMat.rows(), Bitmap.Config.ARGB_8888);
-        Utils.matToBitmap(resultMat, resultBitmapWithRectangle);
-
-        // Display the bitmap with rectangles
-        resultImageView.setImageBitmap(resultBitmapWithRectangle);
-        resultImageView.setVisibility(View.VISIBLE);
-
-        // Group bounding boxes that are close to each other
-        List<Rect> groupedBoundingBoxes = new ArrayList<>();
-        boolean[] visited = new boolean[boundingBoxes.size()];
-
-        for (int i = 0; i < boundingBoxes.size(); i++) {
-            if (visited[i]) continue;
-
-            Rect boxA = boundingBoxes.get(i);
-            Rect combinedBox = new Rect(boxA.tl(), boxA.br()); // Initialize with the same coordinates
-            visited[i] = true;
-
-            for (int j = 0; j < boundingBoxes.size(); j++) {
-                if (i == j || visited[j]) continue;
-
-                Rect boxB = boundingBoxes.get(j);
-                int distance = (int) Math.sqrt(Math.pow((boxA.x + boxA.width / 2) - (boxB.x + boxB.width / 2), 2) +
-                        Math.pow((boxA.y + boxA.height / 2) - (boxB.y + boxB.height / 2), 2));
-
-                if (distance < 10) {
-                    combinedBox = union(combinedBox, boxB);
-                    visited[j] = true;
-                }
-            }
-            groupedBoundingBoxes.add(combinedBox);
-        }
-
-        // Sort grouped bounding boxes by their y-coordinate
-        Collections.sort(groupedBoundingBoxes, new Comparator<Rect>() {
-            @Override
-            public int compare(Rect r1, Rect r2) {
-                return Integer.compare(r1.y, r2.y);
-            }
-        });
-
-        // Count thick lines inside each new bounding box and assign to questions
-        for (Rect boundingBox : groupedBoundingBoxes) {
-            int count = 0;
-            for (Rect box : boundingBoxes) {
-                if (boundingBox.contains(box.tl()) && boundingBox.contains(box.br())) {
-                    count++;
-                }
-            }
-
-            // Assuming question numbers are represented by the y-coordinate of the bounding box
-            marksByQuestion.put(boundingBox.y, count);
-        }
-
-        return marksByQuestion;
-    }
 
     // Utility function to find the union of two rectangles
     private static Rect union(Rect r1, Rect r2) {
@@ -403,15 +388,18 @@ public class SelectTemplateActivity extends Activity {
         return new Rect(x, y, width, height);
     }
 
-    private void displayMarksByTopic() {
-        StringBuilder marksSummary = new StringBuilder();
-        for (Map.Entry<String, Integer> entry : marksByTopic.entrySet()) {
-            marksSummary.append(entry.getKey()).append(": ").append(entry.getValue()).append("\n");
+    // Utility function to find the topic associated with a question number
+    private String findTopicForQuestion(int questionNumber) {
+        if (questionNumber - 1 < topics.size()) {
+            return topics.get(questionNumber - 1);
         }
-        Toast.makeText(this, marksSummary.toString(), Toast.LENGTH_LONG).show();
+        return null;
     }
-
-
-
 }
+
+
+
+
+
+
 

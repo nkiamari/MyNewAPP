@@ -2,88 +2,107 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:padding="16dp">
+    android:padding="16dp"
+    tools:context=".SelectTemplateActivity">
 
-    <!-- EditText for number of pages -->
+    <!-- EditText to enter the number of pages -->
     <EditText
         android:id="@+id/numberOfPagesEditText"
-        android:layout_width="182dp"
-        android:layout_height="63dp"
+        android:layout_width="377dp"
+        android:layout_height="61dp"
         android:hint="Number of Pages"
         android:inputType="number" />
 
-    <!-- EditText for student name -->
+    <!-- EditText to enter the name of the student -->
+
+    <!-- Button to set the number of pages -->
+
     <EditText
         android:id="@+id/studentNameEditText"
-        android:layout_width="228dp"
-        android:layout_height="75dp"
+        android:layout_width="376dp"
+        android:layout_height="58dp"
         android:layout_below="@id/numberOfPagesEditText"
-        android:layout_marginTop="16dp"
+        android:layout_marginTop="73dp"
         android:hint="Name of Student" />
 
-    <!-- Button to set number of pages -->
+    <!-- EditText to enter the topic -->
     <Button
         android:id="@+id/addPageButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_below="@id/studentNameEditText"
-        android:layout_marginTop="-10dp"
+        android:layout_below="@+id/numberOfPagesEditText"
+        android:layout_alignParentEnd="true"
+        android:layout_marginTop="14dp"
+        android:layout_marginEnd="58dp"
         android:text="Set Pages" />
 
-    <!-- EditText for topic -->
+    <!-- Button to set the topic and question marks -->
     <EditText
         android:id="@+id/topicNameEditText"
-        android:layout_width="381dp"
+        android:layout_width="382dp"
         android:layout_height="56dp"
         android:layout_below="@id/addPageButton"
-        android:layout_marginTop="16dp"
+        android:layout_marginTop="86dp"
         android:hint="Enter topic"
         android:inputType="text" />
 
-    <!-- EditText for question number -->
-    <EditText
-        android:id="@+id/questionNumbersEditText"
-        android:layout_width="381dp"
-        android:layout_height="57dp"
-        android:layout_below="@id/topicNameEditText"
-        android:layout_marginTop="16dp"
-        android:hint="Enter question numbers separated by comma"
-        android:inputType="text" />
 
-    <!-- Button to set topic and question number -->
-    <Button
-        android:id="@+id/setTopicAndQuestionButton"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_below="@id/questionNumbersEditText"
-        android:layout_marginTop="16dp"
-        android:text="Set Topic and Question Number" />
+    <!-- Button to capture an image -->
 
-    <!-- Button to capture image -->
+    <!-- Button to count marks -->
+
+    <!-- ImageView to display the result -->
+
+    <!-- Button to finalize data -->
+
     <Button
         android:id="@+id/captureImageButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_below="@id/setTopicAndQuestionButton"
-        android:layout_marginTop="16dp"
+        android:layout_alignParentTop="true"
+        android:layout_marginTop="366dp"
         android:text="Capture Image" />
 
-    <!-- Button to count marks -->
     <Button
         android:id="@+id/countMarksButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_below="@id/captureImageButton"
-        android:layout_marginTop="16dp"
+        android:layout_below="@+id/finalizeButton"
+        android:layout_alignParentEnd="true"
+        android:layout_marginTop="37dp"
+        android:layout_marginEnd="54dp"
         android:text="Count Marks" />
 
-    <!-- ImageView to display the result -->
     <ImageView
         android:id="@+id/resultImageView"
-        android:layout_width="110dp"
-        android:layout_height="100dp"
+        android:layout_width="174dp"
+        android:layout_height="93dp"
+        android:layout_below="@id/countMarksButton"
         android:layout_alignParentEnd="true"
-        android:layout_marginTop="16dp"
-        android:layout_marginEnd="32dp" />
+        android:layout_marginTop="113dp"
+        android:layout_marginEnd="110dp"
+        android:contentDescription="Result Image"
+        android:visibility="visible" />
+
+    <Button
+        android:id="@+id/finalizeButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/topicNameEditText"
+        android:layout_alignParentEnd="true"
+        android:layout_marginTop="19dp"
+        android:layout_marginEnd="42dp"
+        android:text="Finalize Data" />
+
+
+    <Button
+        android:id="@+id/nextTopicButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/topicNameEditText"
+        android:layout_alignParentEnd="true"
+        android:layout_marginTop="21dp"
+        android:layout_marginEnd="273dp"
+        android:text="Next Topic" />
 
 </RelativeLayout>
