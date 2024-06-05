@@ -28,7 +28,14 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="Add Number of Pages"
-        android:layout_marginBottom="16dp" />
+        android:layout_marginBottom="16dp"
+        android:background="@drawable/button_background"
+        android:textColor="@android:color/white"
+        android:textSize="18sp"
+        android:paddingStart="24dp"
+        android:paddingEnd="24dp"
+        android:paddingTop="12dp"
+        android:paddingBottom="12dp" />
 
     <!-- Button to add a new topic -->
     <Button
@@ -36,7 +43,14 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="Add Topic"
-        android:layout_marginBottom="16dp" />
+        android:layout_marginBottom="16dp"
+        android:background="@drawable/button_background"
+        android:textColor="@android:color/white"
+        android:textSize="18sp"
+        android:paddingStart="24dp"
+        android:paddingEnd="24dp"
+        android:paddingTop="12dp"
+        android:paddingBottom="12dp" />
 
     <!-- Button to finalize the list of topics -->
     <Button
@@ -44,5 +58,12 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="Finalize Topics"
-        android:layout_marginBottom="16dp" />
+        android:layout_marginBottom="16dp"
+        android:background="@drawable/button_background"
+        android:textColor="@android:color/white"
+        android:textSize="18sp"
+        android:paddingStart="24dp"
+        android:paddingEnd="24dp"
+        android:paddingTop="12dp"
+        android:paddingBottom="12dp" />
 </LinearLayout>
