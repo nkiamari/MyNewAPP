@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="16dp">
+
+    <!-- EditText for entering number of pages -->
+    <EditText
+        android:id="@+id/numberOfPagesEditText"
+        android:layout_width="match_parent"
+        android:layout_height="60dp"
+        android:layout_marginBottom="16dp"
+        android:hint="Enter number of pages"
+        android:inputType="number" />
+
+    <!-- EditText for entering topic name -->
+    <EditText
+        android:id="@+id/topicNameEditText"
+        android:layout_width="match_parent"
+        android:layout_height="60dp"
+        android:layout_marginBottom="16dp"
+        android:hint="Enter topic name" />
+
+    <!-- Button to add number of pages -->
+    <Button
+        android:id="@+id/addPageButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Add Number of Pages"
+        android:layout_marginBottom="16dp" />
+
+    <!-- Button to add a new topic -->
+    <Button
+        android:id="@+id/nextTopicButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Add Topic"
+        android:layout_marginBottom="16dp" />
+
+    <!-- Button to finalize the list of topics -->
+    <Button
+        android:id="@+id/finalizeButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Finalize Topics"
+        android:layout_marginBottom="16dp" />
+</LinearLayout>
