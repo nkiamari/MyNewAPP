@@ -6,6 +6,7 @@ import android.content.Intent;
 import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Environment;
 import android.provider.MediaStore;
 import android.util.Log;
 import android.view.View;
@@ -178,7 +179,14 @@ public class SelectTemplateActivity extends Activity {
 
     private void createExcelFile(String studentName, Map<String, Integer> totalMarksByTopic) {
         try {
-            File outputFile = new File(getExternalFilesDir(null), studentName + ".xls");
+            File downloadsDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
+            File file = new File(downloadsDir, "Examscanner");
+
+            if(!file.exists()){
+                file.mkdir();
+                Log.d("File", "file: " + file.getPath());
+            }
+            File outputFile = new File(file, studentName + ".xls");
             WritableWorkbook workbook = Workbook.createWorkbook(outputFile);
 
             WritableSheet sheet = workbook.createSheet("Marks", 0);
