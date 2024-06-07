@@ -51,7 +51,10 @@ public class SelectTemplateActivity extends Activity {
 
     private Button captureImageButton;
     private Button countMarksButton;
+    private Button nextTopicButton;
     private Button finalizeButton;
+
+    private Button NewExamButton;
 
     private EditText studentNameEditText;
 
@@ -100,8 +103,6 @@ public class SelectTemplateActivity extends Activity {
 
                 numberOfPages = Integer.parseInt(numberOfPagesStr);
                 currentPage = 1;
-                capturedImages.clear();
-                topics.clear();
                 Toast.makeText(SelectTemplateActivity.this, "Number of pages set to " + numberOfPages, Toast.LENGTH_SHORT).show();
             }
         });
@@ -149,7 +150,21 @@ public class SelectTemplateActivity extends Activity {
         studentNameEditText = findViewById(R.id.studentNameEditText);
         captureImageButton = findViewById(R.id.captureImageButton);
         countMarksButton = findViewById(R.id.countMarksButton);
-        finalizeButton = findViewById(R.id.finalizeButton);
+        NewExamButton = findViewById(R.id.NewExamButton);
+
+//        nextTopicButton = findViewById(R.id.nextTopicButton);
+//        finalizeButton = findViewById(R.id.finalizeButton);
+
+
+
+        NewExamButton.setOnClickListener((new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                promptForExamInfo();
+                topics.clear();
+            }
+        }));
+
 
         captureImageButton.setOnClickListener(new View.OnClickListener() {
             @Override

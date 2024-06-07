@@ -30,7 +30,24 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="Count Marks"
+        android:layout_marginBottom="16dp"
         android:background="@drawable/button_background"
         android:textColor="@android:color/white"
         android:textSize="18sp"/>
+
+
+    <Button
+        android:id="@+id/NewExamButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@drawable/button_background"
+        android:text="Add new exam paper"
+        android:textColor="@android:color/white"
+        android:textSize="18sp" />
+
+
 </LinearLayout>
+
+
+
+
