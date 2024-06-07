@@ -2,6 +2,7 @@ package com.example.game;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.net.Uri;
@@ -9,9 +10,11 @@ import android.os.Bundle;
 import android.os.Environment;
 import android.provider.MediaStore;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import org.opencv.android.OpenCVLoader;
@@ -193,13 +196,31 @@ public class SelectTemplateActivity extends Activity {
             @Override
             public void onClick(View v) {
                 if (currentPage > numberOfPages) {
-                    Toast.makeText(SelectTemplateActivity.this, "All pages captured", Toast.LENGTH_SHORT).show();
+                    // Inflate the custom dialog layout
+                    View dialogView = getLayoutInflater().inflate(R.layout.dialog_capture_image, null);
+
+                    // Create the AlertDialog
+                    AlertDialog.Builder builder = new AlertDialog.Builder(SelectTemplateActivity.this);
+                    builder.setView(dialogView);
+                    AlertDialog alertDialog = builder.create();
+
+                    // Find the OK button in the dialog layout
+                    Button okButton = dialogView.findViewById(R.id.okButton);
+                    okButton.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View v) {
+                            alertDialog.dismiss(); // Dismiss the dialog when OK button is clicked
+                        }
+                    });
+
+                    // Show the dialog
+                    alertDialog.show();
                     return;
                 }
                 dispatchTakePictureIntent();
-
             }
         });
+
 
         countMarksButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -220,7 +241,7 @@ public class SelectTemplateActivity extends Activity {
             File downloadsDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
             File file = new File(downloadsDir, "Examscanner");
 
-            if(!file.exists()){
+            if (!file.exists()) {
                 file.mkdir();
                 Log.d("File", "file: " + file.getPath());
             }
@@ -244,13 +265,42 @@ public class SelectTemplateActivity extends Activity {
             workbook.write();
             workbook.close();
 
-            Toast.makeText(this, "Excel file created for " + studentName, Toast.LENGTH_SHORT).show();
+            showExcelCreatedDialog(studentName);
 
         } catch (IOException | WriteException e) {
             e.printStackTrace();
             Toast.makeText(this, "Failed to create Excel file: " + e.getMessage(), Toast.LENGTH_SHORT).show();
         }
     }
+
+    private void showExcelCreatedDialog(String studentName) {
+        // Inflate the custom dialog layout
+        View dialogView = getLayoutInflater().inflate(R.layout.dialog_excel_created, null);
+
+        // Create the AlertDialog
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setView(dialogView);
+        AlertDialog alertDialog = builder.create();
+
+        // Set the dialog message
+        TextView dialogMessage = dialogView.findViewById(R.id.dialog_message);
+        dialogMessage.setText("Excel file created for " + studentName + ". Please find it in the following path: Downloads/Examscanner");
+
+        // Find the OK button in the dialog layout
+        Button okButton = dialogView.findViewById(R.id.ok_button);
+        okButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                alertDialog.dismiss(); // Dismiss the dialog when OK button is clicked
+            }
+        });
+
+        // Show the dialog
+        alertDialog.show();
+    }
+
+
+
 
     private void dispatchTakePictureIntent() {
         Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);

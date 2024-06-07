@@ -30,7 +30,7 @@
         android:theme="@style/AppTheme">
         <meta-data
             android:name="com.google.android.actions"
-            android:resource="@drawable/background_drawable" />
+            android:resource="@layout/dialog_excel_created"/>
 
         <activity
             android:name=".SelectTemplateActivity"
