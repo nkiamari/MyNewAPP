@@ -55,6 +55,7 @@ public class SelectTemplateActivity extends Activity {
     private Button finalizeButton;
 
     private Button NewExamButton;
+    private Button exitButton;
 
     private EditText studentNameEditText;
 
@@ -68,6 +69,7 @@ public class SelectTemplateActivity extends Activity {
         studentNameEditText = findViewById(R.id.studentNameEditText);
         captureImageButton = findViewById(R.id.captureImageButton);
         countMarksButton = findViewById(R.id.countMarksButton);
+        exitButton = findViewById(R.id.exitButton);
 
 
         Intent intent = getIntent();
@@ -81,6 +83,8 @@ public class SelectTemplateActivity extends Activity {
         } else {
             initializeUI();
         }
+
+
     }
 
     private void promptForExamInfo() {
@@ -90,6 +94,19 @@ public class SelectTemplateActivity extends Activity {
         Button addPageButton = findViewById(R.id.addPageButton);
         Button nextTopicButton = findViewById(R.id.nextTopicButton);
         Button finalizeButton = findViewById(R.id.finalizeButton);
+        Button exitButton = findViewById(R.id.exitButton);
+
+
+// Initialize topics if null
+        if (topics == null) {
+            topics = new ArrayList<>();
+        }
+        exitButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                finish();
+            }
+        });
 
         addPageButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -151,12 +168,18 @@ public class SelectTemplateActivity extends Activity {
         captureImageButton = findViewById(R.id.captureImageButton);
         countMarksButton = findViewById(R.id.countMarksButton);
         NewExamButton = findViewById(R.id.NewExamButton);
+        exitButton = findViewById(R.id.exitButton);
 
 //        nextTopicButton = findViewById(R.id.nextTopicButton);
 //        finalizeButton = findViewById(R.id.finalizeButton);
 
 
-
+        exitButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                finish();
+            }
+        });
         NewExamButton.setOnClickListener((new View.OnClickListener() {
             @Override
             public void onClick(View v) {
