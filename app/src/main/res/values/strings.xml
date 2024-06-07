@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">YourAppName</string>
+    <string name="app_name">Exam Scanner</string>
     <string name="enter_student_name">Enter student name</string>
     <string name="capture_image">Capture Image</string>
     <string name="count_marks">Count Marks</string>
