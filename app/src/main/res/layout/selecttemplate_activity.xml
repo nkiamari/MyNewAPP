@@ -1,52 +1,42 @@
-<?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:padding="16dp">
+    android:padding="16dp"
+    android:background="@color/backgroundColor">
 
     <!-- EditText for entering student name -->
     <EditText
         android:id="@+id/studentNameEditText"
+        style="@style/CustomEditText"
         android:layout_width="match_parent"
-        android:layout_height="60dp"
-        android:layout_marginBottom="16dp"
-        android:hint="Enter student name" />
+        android:layout_height="60dp" />
 
     <!-- Button to capture image -->
     <Button
         android:id="@+id/captureImageButton"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Capture Image"
-        android:layout_marginBottom="16dp"
-        android:background="@drawable/button_background"
-        android:textColor="@android:color/white"
-        android:textSize="18sp"/>
+        style="@style/CustomButton"
+        android:text="@string/capture_image" />
 
     <!-- Button to count marks -->
     <Button
         android:id="@+id/countMarksButton"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Count Marks"
-        android:layout_marginBottom="16dp"
-        android:background="@drawable/button_background"
-        android:textColor="@android:color/white"
-        android:textSize="18sp"/>
+        style="@style/CustomButton"
+        android:text="@string/count_marks" />
 
-
+    <!-- Button to add new exam paper -->
     <Button
         android:id="@+id/NewExamButton"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="@drawable/button_background"
-        android:text="Add new exam paper"
-        android:textColor="@android:color/white"
-        android:textSize="18sp" />
+        style="@style/CustomButton"
+        android:text="@string/add_new_exam_paper" />
 
-
-
+    <!-- Button to exit -->
     <Button
         android:id="@+id/exitButton"
         android:layout_width="wrap_content"
@@ -58,9 +48,4 @@
         android:layout_below="@+id/finalizeButton"
         android:layout_marginTop="16dp"
         android:layout_centerHorizontal="true"/>
-
 </LinearLayout>
-
-
-
-
