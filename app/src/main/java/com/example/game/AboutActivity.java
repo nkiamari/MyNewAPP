@@ -50,6 +50,14 @@ public class AboutActivity extends Activity {
         builder.setView(view);
         AlertDialog dialog = builder.create();
 
+        // Set OnClickListener to dismiss dialog when clicked anywhere
+        view.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                dialog.dismiss();
+            }
+        });
+
         // Show AlertDialog
         dialog.show();
     }
