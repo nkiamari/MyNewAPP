@@ -5,6 +5,7 @@ import android.app.AlertDialog;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View; // Import View class
+import android.widget.Button;
 import android.widget.TextView;
 import android.text.Html;
 import android.widget.ImageView;
@@ -15,6 +16,16 @@ public class AboutActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.about_layout);
+
+        // Set up the back button
+        Button backButton = findViewById(R.id.backButton);
+        backButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                onBackPressed(); // Navigate back to previous activity
+            }
+        });
+
 
         ImageView exampleImageView = findViewById(R.id.exampleImageView);
         exampleImageView.setOnClickListener(new View.OnClickListener() {
