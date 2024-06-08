@@ -16,20 +16,12 @@
         android:inputType="number" />
 
     <!-- EditText for entering topic name -->
-
-    <!-- Button to add number of pages -->
-
-    <!-- Button to add a new topic -->
     <Button
         android:id="@+id/addPageButton"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginBottom="16dp"
         android:background="@drawable/button_background"
-        android:paddingStart="24dp"
-        android:paddingTop="12dp"
-        android:paddingEnd="24dp"
-        android:paddingBottom="12dp"
         android:text="Add Number of Pages"
         android:textColor="@android:color/white"
         android:textSize="18sp" />
@@ -41,46 +33,56 @@
         android:layout_marginBottom="16dp"
         android:hint="Enter topic name" />
 
+    <!-- Button to add number of pages -->
+
+    <!-- Button to add a new topic -->
     <Button
         android:id="@+id/nextTopicButton"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Add Topic"
         android:layout_marginBottom="16dp"
         android:background="@drawable/button_background"
+        android:text="Add Topic"
         android:textColor="@android:color/white"
-        android:textSize="18sp"
-        android:paddingStart="24dp"
-        android:paddingEnd="24dp"
-        android:paddingTop="12dp"
-        android:paddingBottom="12dp" />
+        android:textSize="18sp" />
 
     <!-- Button to finalize the list of topics -->
     <Button
         android:id="@+id/finalizeButton"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Finalize Topics"
         android:layout_marginBottom="16dp"
         android:background="@drawable/button_background"
+        android:text="Finalize"
         android:textColor="@android:color/white"
-        android:textSize="18sp"
-        android:paddingStart="24dp"
-        android:paddingEnd="24dp"
-        android:paddingTop="12dp"
-        android:paddingBottom="12dp" />
+        android:textSize="18sp" />
 
-
-    <Button
-        android:id="@+id/exitButton"
-        android:layout_width="wrap_content"
+    <!-- Horizontal LinearLayout to contain exit and about buttons -->
+    <LinearLayout
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="@drawable/button_background"
-        android:textColor="@android:color/white"
-        android:textSize="18sp"
-        android:text="Exit"
-        android:layout_below="@+id/finalizeButton"
-        android:layout_marginTop="16dp"
-        android:layout_centerHorizontal="true"/>
+        android:orientation="horizontal"
+        android:gravity="center"
+        android:layout_marginTop="16dp">
 
+        <Button
+            android:id="@+id/exitButton"
+            android:layout_width="148dp"
+            android:layout_height="wrap_content"
+            android:background="@drawable/button_background"
+            android:text="Exit"
+            android:textColor="@android:color/white"
+            android:textSize="18sp"
+            android:layout_marginEnd="8dp" />
+
+        <Button
+            android:id="@+id/aboutButton"
+            android:layout_width="148dp"
+            android:layout_height="wrap_content"
+            android:background="@drawable/button_background"
+            android:text="ABOUT"
+            android:textColor="@android:color/white"
+            android:textSize="18sp"
+            android:layout_marginStart="8dp" />
+    </LinearLayout>
 </LinearLayout>

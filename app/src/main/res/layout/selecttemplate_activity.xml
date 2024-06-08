@@ -37,15 +37,32 @@
         android:text="@string/add_new_exam_paper" />
 
     <!-- Button to exit -->
-    <Button
-        android:id="@+id/exitButton"
-        android:layout_width="wrap_content"
+    <!-- Horizontal LinearLayout to contain exit and about buttons -->
+    <LinearLayout
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="@drawable/button_background"
-        android:textColor="@android:color/white"
-        android:textSize="18sp"
-        android:text="Exit"
-        android:layout_below="@+id/finalizeButton"
-        android:layout_marginTop="16dp"
-        android:layout_centerHorizontal="true"/>
+        android:orientation="horizontal"
+        android:gravity="center"
+        android:layout_marginTop="16dp">
+
+        <Button
+            android:id="@+id/exitButton"
+            android:layout_width="148dp"
+            android:layout_height="wrap_content"
+            android:background="@drawable/button_background"
+            android:text="Exit"
+            android:textColor="@android:color/white"
+            android:textSize="18sp"
+            android:layout_marginEnd="8dp" />
+
+        <Button
+            android:id="@+id/aboutButton"
+            android:layout_width="148dp"
+            android:layout_height="wrap_content"
+            android:background="@drawable/button_background"
+            android:text="ABOUT"
+            android:textColor="@android:color/white"
+            android:textSize="18sp"
+            android:layout_marginStart="8dp" />
+    </LinearLayout>
 </LinearLayout>

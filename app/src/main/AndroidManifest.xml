@@ -10,13 +10,14 @@
     <queries>
         <intent>
             <action android:name="android.intent.action.VIEW" />
-
             <data android:mimeType="application/*" />
         </intent>
         <intent>
             <action android:name="android.media.action.IMAGE_CAPTURE" />
         </intent>
-    </queries> <!-- Features -->
+    </queries>
+
+    <!-- Features -->
     <uses-feature
         android:name="android.hardware.camera"
         android:required="false" />
@@ -28,19 +29,25 @@
         android:roundIcon="@mipmap/ic_launcher"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
+
         <meta-data
             android:name="com.google.android.actions"
-            android:resource="@layout/dialog_excel_created"/>
+            android:resource="@layout/about_layout" />
 
         <activity
             android:name=".SelectTemplateActivity"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <activity
+            android:name=".AboutActivity"
+            android:exported="true">
+        </activity>
+
     </application>
 
 </manifest>

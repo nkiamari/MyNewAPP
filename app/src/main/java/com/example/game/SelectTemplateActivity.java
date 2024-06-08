@@ -1,5 +1,6 @@
 package com.example.game;
 
+import android.text.Html;
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.AlertDialog;
@@ -59,6 +60,7 @@ public class SelectTemplateActivity extends Activity {
 
     private Button NewExamButton;
     private Button exitButton;
+    private Button aboutButton;
 
     private EditText studentNameEditText;
 
@@ -73,6 +75,7 @@ public class SelectTemplateActivity extends Activity {
         captureImageButton = findViewById(R.id.captureImageButton);
         countMarksButton = findViewById(R.id.countMarksButton);
         exitButton = findViewById(R.id.exitButton);
+        aboutButton = findViewById(R.id.aboutButton);
 
 
         Intent intent = getIntent();
@@ -87,6 +90,13 @@ public class SelectTemplateActivity extends Activity {
             initializeUI();
         }
 
+        aboutButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(SelectTemplateActivity.this, AboutActivity.class);
+                startActivity(intent);
+            }
+        });
 
     }
 
@@ -98,6 +108,7 @@ public class SelectTemplateActivity extends Activity {
         Button nextTopicButton = findViewById(R.id.nextTopicButton);
         Button finalizeButton = findViewById(R.id.finalizeButton);
         Button exitButton = findViewById(R.id.exitButton);
+        Button aboutButton = findViewById(R.id.aboutButton);
 
 
 // Initialize topics if null
@@ -164,6 +175,13 @@ public class SelectTemplateActivity extends Activity {
                 initializeUI();
             }
         });
+        aboutButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(SelectTemplateActivity.this, AboutActivity.class);
+                startActivity(intent);
+            }
+        });
     }
 
     private void initializeUI() {
@@ -172,11 +190,18 @@ public class SelectTemplateActivity extends Activity {
         countMarksButton = findViewById(R.id.countMarksButton);
         NewExamButton = findViewById(R.id.NewExamButton);
         exitButton = findViewById(R.id.exitButton);
+        aboutButton = findViewById(R.id.aboutButton);
 
 //        nextTopicButton = findViewById(R.id.nextTopicButton);
 //        finalizeButton = findViewById(R.id.finalizeButton);
 
-
+        aboutButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(SelectTemplateActivity.this, AboutActivity.class);
+                startActivity(intent);
+            }
+        });
         exitButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -284,7 +309,7 @@ public class SelectTemplateActivity extends Activity {
 
         // Set the dialog message
         TextView dialogMessage = dialogView.findViewById(R.id.dialog_message);
-        dialogMessage.setText("Excel file created for " + studentName + ". Please find it in the following path: Downloads/Examscanner");
+        dialogMessage.setText(Html.fromHtml("Excel file created for <b>" + studentName + "</b>. Please find it in the following path: <b>ExternalStorage/Downloads/Examscanner</b><br/>"));
 
         // Find the OK button in the dialog layout
         Button okButton = dialogView.findViewById(R.id.ok_button);
