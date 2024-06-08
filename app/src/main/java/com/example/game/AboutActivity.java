@@ -1,16 +1,28 @@
 package com.example.game;
 
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.os.Bundle;
+import android.view.LayoutInflater;
+import android.view.View; // Import View class
 import android.widget.TextView;
 import android.text.Html;
-
+import android.widget.ImageView;
 
 public class AboutActivity extends Activity {
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.about_layout);
+
+        ImageView exampleImageView = findViewById(R.id.exampleImageView);
+        exampleImageView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                showImagePopup();
+            }
+        });
 
         TextView aboutTextView = findViewById(R.id.aboutTextView);
         aboutTextView.setText(Html.fromHtml("This app is developed by <b>Niloofar Kiamari</b>. " +
@@ -22,9 +34,24 @@ public class AboutActivity extends Activity {
                 "<b>3. Next Topic:</b> The user moves to the next topic in the exam.<br/>" +
                 "<b>4. Finalize:</b> The app finalizes the current exam and prepares it for analysis.<br/>" +
                 "<b>5. New Exam:</b> The user starts a new exam session.<br/>" +
-                "<b>6. Exit:</b> The user can exit the application by pressing the Exit button."
+                "<b>6. Exit:</b> The user can exit the application by pressing the Exit button." +
+                "If you have any question, leave them in the comment section and they will be answered accordingly."
         ));
-
-
     }
+
+    private void showImagePopup() {
+        // Inflate the layout for the dialog
+        View view = LayoutInflater.from(this).inflate(R.layout.popup_image_layout, null);
+        ImageView imageView = view.findViewById(R.id.popupImageView);
+        imageView.setImageResource(R.drawable.example_exam_image);
+
+        // Create AlertDialog
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setView(view);
+        AlertDialog dialog = builder.create();
+
+        // Show AlertDialog
+        dialog.show();
+    }
+
 }
