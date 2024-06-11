@@ -37,17 +37,19 @@ public class AboutActivity extends Activity {
 
         TextView aboutTextView = findViewById(R.id.aboutTextView);
         aboutTextView.setText(Html.fromHtml("Exam Scanner V1.0 is developed by <b>Niloofar Kiamari</b>. " +
-                "The goal of this app is to scan exam papers and automatically count marks. " +
+                "The goal of this app is to streamline the process of providing detailed feedback to students by scaning exam papers and automatically counting marks related to each topic. " +
                 "Here's how the buttons work:<br/><br/>" +
                 "<b>1. Capture Image:</b> The user takes a photo of each page of the exam. " +
                 "Captured images do not need to include the entire page accurately, but should include all marks within the page and exclude anything outside of the exam paper. Images should be captured only from exam papers, which should be black and white with colorful marks.<br/>" +
-                "<b>2. Count Marks:</b> The app counts the marks on the captured exam page. Marks should be drawn with thick and colored markers for accurate detection. One line should be drawn for each mark.<br/>" +
+                "<b>2. Count Marks:</b> The app automatically counts the marks related to each topic on the captured exam page. Marks should be drawn with thick and colored markers for accurate detection. One line should be drawn for each mark.<br/>" +
                 "<b>3. Next Topic:</b> The user enters the topic related to the next question in the exam.<br/>" +
                 "<b>4. Finalize:</b> The app finalizes the current exam and prepares it for analysis.<br/>" +
                 "<b>5. New Exam:</b> The user starts a new exam paper.<br/>" +
                 "<b>6. Exit:</b> The user can exit the application by pressing the Exit button.<br/>" +
                 "* If you have any question, leave them in the comment section and they will be answered accordingly."
         ));
+
+
     }
 
     private void showImagePopup() {

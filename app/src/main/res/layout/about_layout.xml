@@ -11,7 +11,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="About this App"
-        android:textSize="18sp"
+        android:textSize="16.5sp"
         android:textColor="@android:color/black"
         android:padding="16dp" />
 
@@ -37,7 +37,7 @@
             android:layout_width="100dp"
             android:layout_height="50dp"
             android:layout_marginLeft="12dp"
-            android:layout_marginTop="-70dp"
+            android:layout_marginTop="-80dp"
             android:layout_marginBottom="49dp"
             android:background="@drawable/button_background"
             android:gravity="center_horizontal|center_vertical"
@@ -47,3 +47,4 @@
     </LinearLayout>
 
 </LinearLayout>
+
